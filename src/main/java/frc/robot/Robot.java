@@ -4,11 +4,14 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import monologue.Logged;
+import monologue.Monologue;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -17,7 +20,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * class or the package after creating this
  * project, you must also update the build.gradle file in the project.
  */
-public class Robot extends TimedRobot {
+public class Robot extends TimedRobot implements Logged {
 
   private static Robot instance;
   private Command m_autonomousCommand;
@@ -40,10 +43,16 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+
+
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+
+    Monologue.setupMonologue(m_robotContainer, "/Monologue", false, true);
+
+    DriverStation.startDataLog(DataLogManager.getLog());
 
     // Create a timer to disable motor brake a few seconds after disable. This will
     // let the robot stop
@@ -75,7 +84,13 @@ public class Robot extends TimedRobot {
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
-    
+    // setFileOnly is used to shut off NetworkTables broadcasting for most logging
+    // calls.
+    // Basing this condition on the connected state of the FMS is a suggestion only.
+    Monologue.setFileOnly(DriverStation.isFMSAttached());
+    // This method needs to be called periodically, or no logging annotations will
+    // process properly.
+    Monologue.updateAll();
   }
 
   /**
