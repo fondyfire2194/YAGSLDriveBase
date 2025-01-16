@@ -28,8 +28,11 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Velocity;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -118,8 +121,8 @@ public class SwerveSubsystem extends SubsystemBase {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via
-                                             // angle.
+    swerveDrive.setHeadingCorrection(true); // Heading correction should only be used while controlling the robot via
+                                            // angle.
     swerveDrive.setCosineCompensator(false);// !SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for
                                             // simulations since it causes discrepancies not seen in real life.
     swerveDrive.setAngularVelocityCompensation(true,
@@ -133,11 +136,11 @@ public class SwerveSubsystem extends SubsystemBase {
     // over the internal encoder and push the
     // offsets onto it. Throws warning if not possible
 
-   // swerveDrive.restoreInternalOffset();
+    // swerveDrive.restoreInternalOffset();
 
-    replaceSwerveModuleFeedforward(0.0, 12.0 / Constants.MAX_SPEED, 0.0);
+    replaceSwerveModuleFeedforward(0.29943, 2.5238, 0.55783);
 
-   // SwerveDriveTest.centerModules(swerveDrive);
+    // SwerveDriveTest.centerModules(swerveDrive);
 
     if (visionDriveTest) {
       setupPhotonVision();
@@ -176,6 +179,8 @@ public class SwerveSubsystem extends SubsystemBase {
       swerveDrive.updateOdometry();
       vision.updatePoseEstimation(swerveDrive);
     }
+    SmartDashboard.putNumberArray("Pose2d", new Double[] { getPose().getMeasureX().baseUnitMagnitude(),
+        getPose().getMeasureY().baseUnitMagnitude(), getPose().getRotation().getRadians() });
   }
 
   @Override
@@ -414,7 +419,7 @@ public class SwerveSubsystem extends SubsystemBase {
     return SwerveDriveTest.generateSysIdCommand(
         SwerveDriveTest.setDriveSysIdRoutine(
             new Config(),
-            this, swerveDrive, 12),
+            this, swerveDrive, 12, false),
         3.0, 5.0, 3.0);
   }
 
@@ -452,8 +457,9 @@ public class SwerveSubsystem extends SubsystemBase {
    *         given speed
    */
   public Command driveToDistanceCommand(double distanceInMeters, double speedInMetersPerSecond) {
-    return run(() -> drive(new ChassisSpeeds(speedInMetersPerSecond, 0, 0)))
-        .until(() -> swerveDrive.getPose().getTranslation().getDistance(new Translation2d(0, 0)) > distanceInMeters);
+    return run(() -> drive(new ChassisSpeeds(speedInMetersPerSecond, 0, 0)));
+    // .until(() -> swerveDrive.getPose().getTranslation().getDistance(new
+    // Translation2d(0, 0)) > distanceInMeters);
   }
 
   /**
@@ -483,14 +489,27 @@ public class SwerveSubsystem extends SubsystemBase {
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY,
       DoubleSupplier angularRotationX) {
     return run(() -> {
-      // Make the robot move
-      swerveDrive.drive(SwerveMath.scaleTranslation(new Translation2d(
+      // Make the robot mo
+      drive(SwerveMath.scaleTranslation(new Translation2d(
           translationX.getAsDouble() * swerveDrive.getMaximumChassisVelocity(),
           translationY.getAsDouble() * swerveDrive.getMaximumChassisVelocity()), 0.8),
           Math.pow(angularRotationX.getAsDouble(), 3) * swerveDrive.getMaximumChassisAngularVelocity(),
           true,
-          true);
+          false);
     });
+  }
+
+  public void drive(
+      Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
+    // Creates a robot-relative ChassisSpeeds object, converting from field-relative
+    // speeds if
+    // necessary.
+    ChassisSpeeds velocity = new ChassisSpeeds(translation.getX(), translation.getY(), rotation);
+
+    if (fieldRelative) {
+      velocity = ChassisSpeeds.fromFieldRelativeSpeeds(velocity, getPose().getRotation());
+    }
+    swerveDrive.drive(velocity, isOpenLoop, new Translation2d());
   }
 
   /**
