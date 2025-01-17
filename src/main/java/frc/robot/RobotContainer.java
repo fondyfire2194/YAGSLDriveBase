@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.VisionConstants.reefSides;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
+import frc.robot.subsystems.LimelightVision;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import monologue.Logged;
 
@@ -124,6 +125,7 @@ public class RobotContainer implements Logged {
 
   Command driveSetpointGenSim = drivebase.driveWithSetpointGeneratorFieldRelative(driveDirectAngleSim);
 
+  public final LimelightVision m_llv = new LimelightVision();
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */

@@ -19,17 +19,24 @@ import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -38,8 +45,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.VisionConstants;
 import frc.robot.Constants;
+import frc.robot.VisionConstants.CameraConstants;
 import frc.robot.VisionConstants.reefSides;
 import frc.robot.subsystems.swervedrive.Vision.Cameras;
+import frc.robot.utils.LimelightTagsUpdate;
 import monologue.Annotations.Log;
 import monologue.Logged;
 
@@ -79,7 +88,17 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   /**
    * PhotonVision class to keep an accurate odometry.
    */
+
+  private SwerveDrivePoseEstimator swervePoseEstimator;
+
   private Vision vision;
+  public boolean inhibitVision;
+  public Object distanceLimelightToEstimator;
+  private static final Matrix<N3, N1> ODOMETRY_STDDEV = VecBuilder.fill(0.03, 0.03, Math.toRadians(1));
+  private static final Matrix<N3, N1> VISION_STDDEV = VecBuilder.fill(0.5, 0.5, Math.toRadians(40));
+
+  public LimelightTagsUpdate flUpdate = new LimelightTagsUpdate(CameraConstants.frontLeftCamera, this);
+  public LimelightTagsUpdate frUpdate = new LimelightTagsUpdate(CameraConstants.frontRightCamera, this);
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -149,6 +168,15 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
       // updates better.
       swerveDrive.stopOdometryThread();
     }
+
+    swervePoseEstimator = new SwerveDrivePoseEstimator(
+        swerveDrive.kinematics,
+        getYaw(),
+        swerveDrive.getModulePositions(),
+        new Pose2d(),
+        ODOMETRY_STDDEV,
+        VISION_STDDEV);
+
     setupPathPlanner();
   }
 
@@ -180,9 +208,21 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
       swerveDrive.updateOdometry();
       vision.updatePoseEstimation(swerveDrive);
     }
-    // SmartDashboard.putNumberArray("Pose2d", new Double[] { getPose().getMeasureX().baseUnitMagnitude(),
-    //     getPose().getMeasureY().baseUnitMagnitude(), getPose().getRotation().getRadians() });
 
+
+    flUpdate.execute();
+
+    frUpdate.execute();
+
+    // SmartDashboard.putNumberArray("Pose2d", new Double[] {
+    // getPose().getMeasureX().baseUnitMagnitude(),
+    // getPose().getMeasureY().baseUnitMagnitude(),
+    // getPose().getRotation().getRadians() });
+
+  }
+
+  public SwerveDrivePoseEstimator getPoseEstimator() {
+    return swervePoseEstimator;
   }
 
   @Override
@@ -788,6 +828,10 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     return swerveDrive.getPitch();
   }
 
+  public Rotation2d getYaw() {
+    return swerveDrive.getYaw();
+  }
+
   /**
    * Add a fake vision reading for testing purposes.
    */
@@ -809,6 +853,11 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
       return aprilTagFieldLayout.getTagPose(n).get();
     else
       return new Pose3d();
+  }
+
+  public int getGyroRate() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getGyroRate'");
   }
 
 }
