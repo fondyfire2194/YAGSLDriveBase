@@ -332,10 +332,10 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
    * @param pathName PathPlanner path name.
    * @return {@link AutoBuilder#followPath(PathPlannerPath)} path command.
    */
-  public Command getAutonomousCommand(String pathName) {
+  public Command getAutonomousCommand(String pathAutoName) {
     // Create a path following command using AutoBuilder. This will also trigger
     // event markers.
-    return new PathPlannerAuto(pathName);
+    return new PathPlannerAuto(pathAutoName);
   }
 
   /**
