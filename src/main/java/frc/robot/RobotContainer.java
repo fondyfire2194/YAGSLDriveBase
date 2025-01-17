@@ -42,7 +42,7 @@ public class RobotContainer implements Logged {
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandXboxController driverXbox = new CommandXboxController(0);
   // The robot's subsystems and commands are defined here...
-  private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+  final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
       "swerve"));
   // Applies deadbands and inverts controls because joysticks
   // are back-right positive while robot
@@ -132,8 +132,10 @@ public class RobotContainer implements Logged {
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
     autoChooser = AutoBuilder.buildAutoChooser();
-    autoChooser.setDefaultOption("PathOne", drivebase.getAutonomousCommand("PathOne"));
-    autoChooser.addOption("PathTwo", drivebase.getAutonomousCommand("PathTwo"));
+    autoChooser.setDefaultOption("One Path", drivebase.getAutonomousCommand("One Path"));
+    autoChooser.addOption("Two Path", drivebase.getAutonomousCommand("Two Path"));
+    autoChooser.addOption("Three Path", drivebase.getAutonomousCommand("Three Path"));
+    autoChooser.addOption("Abigail", drivebase.getAutonomousCommand("Abigail"));
 
 
     SmartDashboard.putData("PPAutoChooser", autoChooser);
@@ -182,13 +184,13 @@ public class RobotContainer implements Logged {
       driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
       driverXbox.b().whileTrue(
           drivebase.driveToPose(
-              new Pose2d(new Translation2d(4, 1), Rotation2d.fromDegrees(0))));
+              new Pose2d(new Translation2d(4, 2), Rotation2d.fromDegrees(0))));
       driverXbox.y().whileTrue(drivebase.aimAtReef(reefSides.EF, 2));
       driverXbox.start().onTrue(drivebase.centerModulesCommand());
       driverXbox.back().whileTrue(Commands.none());
       driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
       driverXbox.rightBumper().onTrue(
-          Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(0, 0, new Rotation2d()))));
+          Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(7.372, 6.692, new Rotation2d(Math.PI)))));
 
     }
 
@@ -201,6 +203,7 @@ public class RobotContainer implements Logged {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
+    Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(1, 4, new Rotation2d())));
     return autoChooser.getSelected();
   }
 
