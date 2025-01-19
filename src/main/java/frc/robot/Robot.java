@@ -6,15 +6,16 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import monologue.Logged;
 import monologue.Monologue;
+import monologue.Annotations.Log;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -31,6 +32,9 @@ public class Robot extends TimedRobot implements Logged {
   private RobotContainer m_robotContainer;
 
   private Timer disabledTimer;
+
+  @Log
+  Pose2d result;
 
   public Robot() {
     instance = this;
@@ -185,12 +189,13 @@ public class Robot extends TimedRobot implements Logged {
    */
   @Override
   public void simulationInit() {
+   
   }
 
   /**
    * This function is called periodically whilst in simulation.
    */
   @Override
-  public void simulationPeriodic() {
+  public void simulationPeriodic() { 
   }
 }

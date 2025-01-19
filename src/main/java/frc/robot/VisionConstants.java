@@ -25,38 +25,9 @@ public final class VisionConstants {
 
   public static final Distance centerToReefBranch = Meters.of(Meters.convertFrom(13, Inches));
 
-  public static int[] blueReefTags = { 17, 18, 19, 20, 21, 22 };
+  public static int[] blueReefTags = { 0, 21, 22, 17, 18, 19, 20 };
 
-  public static int[] redReefTags = { 6, 7, 8, 9, 10, 11 };
-
-  public static enum reefSides {
-    // AB is closest to the driver station and then proceeds counter clockwise
-    AB(1),
-    CD(2),
-    EF(3),
-    GH(4),
-    IJ(5),
-    KL(6);
-
-    static int[] blueReefTags = { 18, 17, 22, 21, 20, 19 };
-
-    static int[] redReefTags = { 7, 6, 11, 10, 9, 8 };
-
-    int number;
-
-    private reefSides(int number) {
-      this.number = number;
-    }
-
-    public static int getBlueTagNumber(int n) {
-      return blueReefTags[n];
-    }
-
-    public static int getRedTagNumber(int n) {
-      return redReefTags[n];
-    }
-
-  }
+  public static int[] redReefTags = { 0, 10, 11, 6, 7, 8, 9 };
 
   public static final class CameraConstants {
 

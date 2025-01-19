@@ -5,10 +5,13 @@
 package frc.robot.commands.swervedrive.auto;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.VisionConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -22,18 +25,16 @@ public class FindRobotReefZone extends Command {
   double robotY;
   double robotHeading;
   double yLimitForXHGZone;
-  boolean inABZone;
-  boolean inCDZone;
-  boolean inEFZone;
-  boolean inGHZone;
-  boolean inIJZone;
-  boolean inKLZone;
+
   boolean redAlliance;
   boolean exit;
   int tst;
+  double yLimitAngle = 60;
+  boolean m_leftSide;
 
-  public FindRobotReefZone(SwerveSubsystem swerve) {
+  public FindRobotReefZone(SwerveSubsystem swerve, boolean leftSide) {
     m_swerve = swerve;
+    m_leftSide = leftSide;
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -65,7 +66,6 @@ public class FindRobotReefZone extends Command {
       if (checkGHZone()) {
         m_swerve.reefZone = 1;
         exit = true;
-
       }
 
       if (!exit && checkABZone()) {
@@ -73,35 +73,36 @@ public class FindRobotReefZone extends Command {
         exit = true;
       }
 
-      if (!exit && checkCDZone()) {
-        m_swerve.reefZone = 3;
-        exit = true;
-      }
-
-      if (!exit && checkEFZone()) {
+      if (!exit && checkIJZone()) {
         m_swerve.reefZone = 2;
         exit = true;
       }
 
-      if (!exit && checkIJZone()) {
+      if (!exit && checkKLZone()) {
+        m_swerve.reefZone = 3;
+        exit = true;
+      }
+
+      if (!exit && checkCDZone()) {
         m_swerve.reefZone = 5;
         exit = true;
       }
 
-      if (!exit && checkKLZone()) {
+      if (!exit && checkEFZone()) {
         m_swerve.reefZone = 6;
         exit = true;
       }
+      m_swerve.reefZoneTag = VisionConstants.redReefTags[m_swerve.reefZone];
     }
   }
 
   boolean checkGHZone() {
-    double plusYBorder = FieldConstants.FIELD_WIDTH / 2 
+    double plusYBorder = FieldConstants.FIELD_WIDTH / 2
         + (FieldConstants.reefGHEdgeFromCenterFieldX + RobotConstants.ROBOT_LENGTH / 2 - robotX) *
-            Math.sin(Units.degreesToRadians(60));
+            Math.tan(Units.degreesToRadians(yLimitAngle));
     double minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / 2
         - (FieldConstants.reefGHEdgeFromCenterFieldX - robotX) *
-            Math.sin(Units.degreesToRadians(60));
+            Math.tan(Units.degreesToRadians(yLimitAngle));
 
     boolean borderX = robotX > FieldConstants.FIELD_LENGTH / 2 && robotX < FieldConstants.reefGHEdgeFromCenterFieldX;
 
@@ -113,10 +114,10 @@ public class FindRobotReefZone extends Command {
   boolean checkABZone() {
     double plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / 2
         + (robotX - FieldConstants.reefABEdgeFromCenterFieldX) *
-            Math.sin(Units.degreesToRadians(60));
+            Math.tan(Units.degreesToRadians(yLimitAngle));
     double minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / 2
         - (robotX - FieldConstants.reefABEdgeFromCenterFieldX) *
-            Math.sin(Units.degreesToRadians(60));
+            Math.tan(Units.degreesToRadians(yLimitAngle));
 
     boolean borderX = robotX > FieldConstants.reefABEdgeFromCenterFieldX;
 
@@ -126,31 +127,47 @@ public class FindRobotReefZone extends Command {
   }
 
   boolean checkCDZone() {
-    return robotX < FieldConstants.reefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
-  }
-
-  boolean checkEFZone() {
-    return robotX > FieldConstants.reefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
-  }
-
-  boolean checkIJZone() {
     return robotX > FieldConstants.reefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
   }
 
+  boolean checkIJZone() {
+    return robotX < FieldConstants.reefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
+  }
+
   boolean checkKLZone() {
+    return robotX > FieldConstants.reefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
+  }
+
+  boolean checkEFZone() {
     return robotX < FieldConstants.reefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    if (m_swerve.reefZone != 0)
-      m_swerve.reefTargetPose = m_swerve.redReefPoses[m_swerve.reefZone].toPose2d();
+    if (m_swerve.reefZone != 0) {
+
+      m_swerve.reefZoneTag = VisionConstants.redReefTags[m_swerve.reefZone];
+      int tagNumber = VisionConstants.redReefTags[m_swerve.reefZone];
+      m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
+
+      double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
+
+      Translation2d tl2d = new Translation2d(-baseOffset, FieldConstants.reefOffset);
+      if (m_leftSide)
+        tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
+      Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
+
+      m_swerve.reefTargetPose1 = m_swerve.reefTargetPose.transformBy(tr2d);
+
+      m_swerve.driveToPose(m_swerve.reefTargetPose1).schedule();
+    }
+
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return exit;
   }
 }

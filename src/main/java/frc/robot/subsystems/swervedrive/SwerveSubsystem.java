@@ -27,7 +27,9 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.numbers.N1;
@@ -35,7 +37,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -44,7 +46,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.VisionConstants;
 import frc.robot.Constants;
 import frc.robot.VisionConstants.CameraConstants;
-import frc.robot.VisionConstants.reefSides;
 import frc.robot.subsystems.swervedrive.Vision.Cameras;
 import frc.robot.utils.LimelightTagsUpdate;
 import monologue.Annotations.Log;
@@ -100,8 +101,21 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   public Pose3d[] blueReefPoses = new Pose3d[7];
   @Log
   public int reefZone = 0;
+
+  @Log
+  public int reefZoneTag = 0;
+
   @Log
   public Pose2d reefTargetPose;
+
+  @Log
+  public Pose2d reefTargetPose1;
+
+  @Log
+  public Pose2d poseTagActive;
+
+  @Log
+  double tagHeading;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -172,7 +186,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
       swerveDrive.stopOdometryThread();
     }
 
-    for (int i = 1; i <6; i++) {
+    for (int i = 1; i < 6; i++) {
       redReefPoses[i] = getTagPose(VisionConstants.redReefTags[i]);
       blueReefPoses[i] = getTagPose(VisionConstants.blueReefTags[i]);
     }
@@ -223,7 +237,8 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
 
   @Override
   public void simulationPeriodic() {
-
+    poseTagActive = getTagPose(VisionConstants.redReefTags[reefZone]).toPose2d();
+  
   }
 
   /**
@@ -291,54 +306,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     // Preload PathPlanner Path finding
     // IF USING CUSTOM PATHFINDER ADD BEFORE THIS LINE
     PathfindingCommand.warmupCommand().schedule();
-  }
-
-  /**
-   * Get the distance to the speaker.
-   *
-   * @return Distance to speaker in meters.
-   */
-  public double getDistanceToReef(reefSides r) {
-    int allianceAprilTag = DriverStation.getAlliance().get() == Alliance.Blue
-        ? VisionConstants.reefSides.getBlueTagNumber(r.ordinal())
-        : VisionConstants.reefSides.getRedTagNumber(r.ordinal());
-    // Taken from PhotonUtils.getDistanceToPose
-    Pose3d reefAprilTagPose = aprilTagFieldLayout.getTagPose(allianceAprilTag).get();
-    return getPose().getTranslation().getDistance(reefAprilTagPose.toPose2d().getTranslation());
-  }
-
-  /**
-   * Get the yaw to aim at the speaker.
-   *
-   * @return {@link Rotation2d} of which you need to achieve.
-   */
-  public Rotation2d getReefYaw(reefSides r) {
-
-    int allianceAprilTag = DriverStation.getAlliance().get() == Alliance.Blue
-        ? VisionConstants.reefSides.getBlueTagNumber(r.ordinal())
-        : VisionConstants.reefSides.getRedTagNumber(r.ordinal());
-    // Taken from PhotonUtils.getYawToPose()
-    Pose3d speakerAprilTagPose = aprilTagFieldLayout.getTagPose(allianceAprilTag).get();
-    Translation2d relativeTrl = speakerAprilTagPose.toPose2d().relativeTo(getPose()).getTranslation();
-    return new Rotation2d(relativeTrl.getX(), relativeTrl.getY()).plus(swerveDrive.getOdometryHeading());
-  }
-
-  /**
-   * Aim the robot at the speaker.
-   *
-   * @param tolerance Tolerance in degrees.
-   * @return Command to turn the robot to the reef.
-   */
-  public Command aimAtReef(reefSides r, double tolerance) {
-    SwerveController controller = swerveDrive.getSwerveController();
-    return run(
-        () -> {
-          ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(0, 0,
-              controller.headingCalculate(getHeading().getRadians(),
-                  getReefYaw(r).getRadians()),
-              getHeading());
-          drive(speeds);
-        }).until(() -> Math.abs(getReefYaw(r).minus(getHeading()).getDegrees()) < tolerance);
   }
 
   /**

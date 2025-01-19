@@ -120,6 +120,27 @@
       "FMSInfo": {
         "open": true
       },
+      "Monologue": {
+        "drivebase": {
+          "Pose2d##v_/Monologue/drivebase/poseYag11": {
+            "open": true
+          },
+          "Pose2d##v_/Monologue/drivebase/reefTargetPose": {
+            "Rotation2d##v_rotation": {
+              "open": true
+            },
+            "open": true
+          },
+          "Pose2d##v_/Monologue/drivebase/result": {
+            "Translation2d##v_translation": {
+              "open": true
+            },
+            "open": true
+          },
+          "open": true
+        },
+        "open": true
+      },
       "SmartDashboard": {
         "Field": {
           "open": true

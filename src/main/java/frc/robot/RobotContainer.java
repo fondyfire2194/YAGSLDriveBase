@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.VisionConstants.reefSides;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.swervedrive.auto.FindRobotReefZone;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
@@ -188,14 +187,15 @@ public class RobotContainer implements Logged {
       driverXbox.b().whileTrue(
           drivebase.driveToPose(
               new Pose2d(new Translation2d(6, 3.8), Rotation2d.fromDegrees(180))));
-      driverXbox.y().whileTrue(drivebase.aimAtReef(reefSides.EF, 2));
+      driverXbox.y().whileTrue(Commands.none());
       driverXbox.start().onTrue(drivebase.centerModulesCommand());
       driverXbox.back().whileTrue(Commands.none());
       driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
       driverXbox.rightBumper().onTrue(
           Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(7.372, 6.692, new Rotation2d(Math.PI)))));
 
-      driverXbox.povLeft().onTrue(new FindRobotReefZone(drivebase));
+      driverXbox.povLeft().onTrue(new FindRobotReefZone(drivebase,true));
+      driverXbox.povRight().onTrue(new FindRobotReefZone(drivebase,false));
       
 
     }

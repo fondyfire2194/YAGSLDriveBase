@@ -56,13 +56,16 @@ public final class Constants {
     public static final double FIELD_WIDTH = Units.inchesToMeters(317);
     public static final double reefGHEdgeFromCenterFieldX = Units.inchesToMeters(472);
     public static final double reefABEdgeFromCenterFieldX = Units.inchesToMeters(570);
-    public static final double reefMidFromCenterFieldX = FIELD_LENGTH - Units.inchesToMeters(144);
+    public static final double reefMidFromCenterFieldX = FIELD_LENGTH - Units.inchesToMeters(144)
+        - Units.inchesToMeters(65.25 / 2);
     public static final double reefSideWidth = Units.inchesToMeters(37.82);
+    public static double reefOffset = Units.inchesToMeters(6.5);
 
   }
 
   public static class RobotConstants {
     public static final double ROBOT_LENGTH = Units.inchesToMeters(28);
-    
+    public static final double placementOffset = Units.inchesToMeters(5);
+
   }
 }
