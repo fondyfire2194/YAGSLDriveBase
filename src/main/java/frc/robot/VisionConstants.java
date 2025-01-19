@@ -23,11 +23,6 @@ import static edu.wpi.first.units.Units.*;
  */
 public final class VisionConstants {
 
-  public static final Distance centerToReefBranch = Meters.of(Meters.convertFrom(13, Inches));
-
-  public static int[] blueReefTags = { 0, 21, 22, 17, 18, 19, 20 };
-
-  public static int[] redReefTags = { 0, 10, 11, 6, 7, 8, 9 };
 
   public static final class CameraConstants {
 

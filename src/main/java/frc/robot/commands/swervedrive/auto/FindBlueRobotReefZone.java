@@ -85,8 +85,23 @@ public class FindBlueRobotReefZone extends Command {
       m_swerve.reefZone = 2;
       exit = true;
     }
-    m_swerve.reefZoneTag = VisionConstants.blueReefTags[m_swerve.reefZone];
+    if (m_swerve.reefZone != 0) {
 
+      m_swerve.reefZoneTag = FieldConstants.blueReefTags[m_swerve.reefZone];
+      int tagNumber = FieldConstants.blueReefTags[m_swerve.reefZone];
+      m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
+
+      double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
+
+      Translation2d tl2d = new Translation2d(-baseOffset, FieldConstants.reefOffset);
+      if (m_leftSide)
+        tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
+      Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
+
+      m_swerve.reefTargetPose1 = m_swerve.reefTargetPose.transformBy(tr2d);
+
+      m_swerve.driveToPose(m_swerve.reefTargetPose1).schedule();
+    }
   }
 
   boolean checkGHZone() {
@@ -149,23 +164,6 @@ public class FindBlueRobotReefZone extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    if (m_swerve.reefZone != 0) {
-
-      m_swerve.reefZoneTag = VisionConstants.blueReefTags[m_swerve.reefZone];
-      int tagNumber = VisionConstants.blueReefTags[m_swerve.reefZone];
-      m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
-
-      double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
-
-      Translation2d tl2d = new Translation2d(-baseOffset, FieldConstants.reefOffset);
-      if (m_leftSide)
-        tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
-      Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
-
-      m_swerve.reefTargetPose1 = m_swerve.reefTargetPose.transformBy(tr2d);
-
-      m_swerve.driveToPose(m_swerve.reefTargetPose1).schedule();
-    }
 
   }
 

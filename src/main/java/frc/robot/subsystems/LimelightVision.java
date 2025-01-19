@@ -137,14 +137,7 @@ public class LimelightVision extends SubsystemBase {
     SmartDashboard.putBoolean("LL//CamsOK", allcamsok);
   }
 
-  public void setReefOffset(boolean left) {
-    double xOffset = VisionConstants.centerToReefBranch.in(Meters);
-    if (left)
-      xOffset = -xOffset;
-    LimelightHelpers.SetFidcuial3DOffset(
-        CameraConstants.frontLeftCamera.camname, xOffset, 0, 0);
-  }
-
+ 
   public void setCamToRobotOffset(VisionConstants.CameraConstants.CameraValues cam) {
     LimelightHelpers.setCameraPose_RobotSpace(cam.camname, cam.forward, cam.side, cam.up, cam.roll, cam.pitch, cam.yaw);
   }

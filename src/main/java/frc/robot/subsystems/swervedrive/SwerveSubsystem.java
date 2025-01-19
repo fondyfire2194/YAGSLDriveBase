@@ -27,9 +27,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.numbers.N1;
@@ -43,8 +41,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
-import frc.robot.VisionConstants;
 import frc.robot.Constants;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.VisionConstants.CameraConstants;
 import frc.robot.subsystems.swervedrive.Vision.Cameras;
 import frc.robot.utils.LimelightTagsUpdate;
@@ -231,10 +229,10 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   @Override
   public void simulationPeriodic() {
     if (isRedAlliance())
-      poseTagActive = getTagPose(VisionConstants.redReefTags[reefZone]).toPose2d();
+      poseTagActive = getTagPose(FieldConstants.redReefTags[reefZone]).toPose2d();
 
     else
-      poseTagActive = getTagPose(VisionConstants.blueReefTags[reefZone]).toPose2d();
+      poseTagActive = getTagPose(FieldConstants.blueReefTags[reefZone]).toPose2d();
 
   }
 

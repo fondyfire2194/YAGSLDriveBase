@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 import swervelib.math.Matter;
 
 /**
@@ -65,6 +66,12 @@ public final class Constants {
 
     public static final double reefSideWidth = Units.inchesToMeters(37.82);
     public static double reefOffset = Units.inchesToMeters(6.5);
+    public static final double centerToReefBranch = Units.inchesToMeters(13);
+
+    
+  public static int[] blueReefTags = { 0, 21, 22, 17, 18, 19, 20 };
+
+  public static int[] redReefTags = { 0, 10, 11, 6, 7, 8, 9 };
 
   }
 
