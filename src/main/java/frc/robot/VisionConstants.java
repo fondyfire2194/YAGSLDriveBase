@@ -24,7 +24,10 @@ import static edu.wpi.first.units.Units.*;
 public final class VisionConstants {
 
   public static final Distance centerToReefBranch = Meters.of(Meters.convertFrom(13, Inches));
-  
+
+  public static int[] blueReefTags = { 17, 18, 19, 20, 21, 22 };
+
+  public static int[] redReefTags = { 6, 7, 8, 9, 10, 11 };
 
   public static enum reefSides {
     // AB is closest to the driver station and then proceeds counter clockwise
@@ -35,9 +38,9 @@ public final class VisionConstants {
     IJ(5),
     KL(6);
 
-    static int[] blueTags = { 18, 17, 22, 21, 20, 19 };
+    static int[] blueReefTags = { 18, 17, 22, 21, 20, 19 };
 
-    static int[] redTags = { 7, 8, 9, 10, 11, 6 };
+    static int[] redReefTags = { 7, 6, 11, 10, 9, 8 };
 
     int number;
 
@@ -46,11 +49,11 @@ public final class VisionConstants {
     }
 
     public static int getBlueTagNumber(int n) {
-      return blueTags[n];
+      return blueReefTags[n];
     }
 
     public static int getRedTagNumber(int n) {
-      return redTags[n];
+      return redReefTags[n];
     }
 
   }
@@ -99,12 +102,14 @@ public final class VisionConstants {
       }
     }
 
-    public static CameraValues frontLeftCamera = new CameraValues("limelight-frleft", "10.21.94.5",
+    public static CameraValues frontLeftCamera = new CameraValues(
+        "limelight-frleft",
+        "10.21.94.15",
         Units.inchesToMeters(10.75),
         Units.inchesToMeters(-7.25),
         Units.inchesToMeters(9.0),
         0,
-        29, // deg
+        12, // deg 19
         7.5,
         63.3,
         49.7,
@@ -113,12 +118,14 @@ public final class VisionConstants {
         true,
         false);
 
-    public static CameraValues frontRightCamera = new CameraValues("limelight-frright", "10.21.94.6",
+    public static CameraValues frontRightCamera = new CameraValues(
+        "limelight-frright",
+        "10.21.94.16",
         Units.inchesToMeters(10.75),
         Units.inchesToMeters(7.25),
         Units.inchesToMeters(9.0),
         0,
-        29, // deg
+        12, // deg
         -7.5,
         63.3,
         49.7,
@@ -127,10 +134,12 @@ public final class VisionConstants {
         true,
         false);
 
-    public static CameraValues rearCamera = new CameraValues("limelight-rear", "10.21.94.10",
-        0,
+    public static CameraValues rearCamera = new CameraValues(
+        "limelight-rear",
+        "10.21.94.17",
         Units.inchesToMeters(0),
-        0,
+        Units.inchesToMeters(-17.25),
+        Units.inchesToMeters(9.0),
         0,
         5,
         0,

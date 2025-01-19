@@ -11,6 +11,7 @@
       "/SmartDashboard/IMU": "Alerts",
       "/SmartDashboard/JSON": "Alerts",
       "/SmartDashboard/Motors": "Alerts",
+      "/SmartDashboard/PPAutoChooser": "String Chooser",
       "/SmartDashboard/Swerve Drive": "Alerts"
     },
     "windows": {

@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.VisionConstants.reefSides;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.swervedrive.auto.FindRobotReefZone;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.LimelightVision;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -126,6 +127,7 @@ public class RobotContainer implements Logged {
   Command driveSetpointGenSim = drivebase.driveWithSetpointGeneratorFieldRelative(driveDirectAngleSim);
 
   public final LimelightVision m_llv = new LimelightVision();
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -139,9 +141,8 @@ public class RobotContainer implements Logged {
     autoChooser.addOption("Three Path", drivebase.getAutonomousCommand("Three Path"));
     autoChooser.addOption("Abigail", drivebase.getAutonomousCommand("Abigail"));
 
-
     SmartDashboard.putData("PPAutoChooser", autoChooser);
-    
+
     NamedCommands.registerCommand("test", Commands.print("I EXIST"));
   }
 
@@ -169,7 +170,7 @@ public class RobotContainer implements Logged {
         () -> -driverXbox.getRightX()));
 
     if (Robot.isSimulation()) {
-      driverXbox.start().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
+      driverXbox.start().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(8, 4, new Rotation2d()))));
     }
     if (DriverStation.isTest()) {
       drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides drive command above!
@@ -186,13 +187,16 @@ public class RobotContainer implements Logged {
       driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
       driverXbox.b().whileTrue(
           drivebase.driveToPose(
-              new Pose2d(new Translation2d(4, 2), Rotation2d.fromDegrees(0))));
+              new Pose2d(new Translation2d(6, 3.8), Rotation2d.fromDegrees(180))));
       driverXbox.y().whileTrue(drivebase.aimAtReef(reefSides.EF, 2));
       driverXbox.start().onTrue(drivebase.centerModulesCommand());
       driverXbox.back().whileTrue(Commands.none());
       driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
       driverXbox.rightBumper().onTrue(
           Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(7.372, 6.692, new Rotation2d(Math.PI)))));
+
+      driverXbox.povLeft().onTrue(new FindRobotReefZone(drivebase));
+      
 
     }
 

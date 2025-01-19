@@ -5,9 +5,9 @@
 package frc.robot.utils;
 
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.VisionConstants.CameraConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
-
 
 /** Add your docs here. */
 public class LimelightTagsUpdate {
@@ -20,6 +20,7 @@ public class LimelightTagsUpdate {
     public LimelightTagsUpdate(CameraConstants.CameraValues cam, SwerveSubsystem swerve) {
         m_cam = cam;
         m_swerve = swerve;
+      
     }
 
     public void setUseMegatag2(boolean on) {
@@ -28,26 +29,28 @@ public class LimelightTagsUpdate {
 
     public void setLLRobotorientation() {
         LimelightHelpers.SetRobotOrientation(m_cam.camname,
-                m_swerve.getPoseEstimator().getEstimatedPosition().getRotation().getDegrees(),
+                m_swerve.getYaw().getDegrees(),
                 // m_swerve.getHeadingDegrees(),
-                0, 0, 0, 0, 0);
+                0, 0, 0, 0, 0); // m_swerve.getPoseEstimator().getEstimatedPosition().getRotation().getDegrees()
     }
-
 
     public void execute() {
 
-        if (m_cam.isActive && !m_swerve.inhibitVision &&LimelightHelpers.getTV(m_cam.camname)) {
-
+        if (m_cam.isActive && !m_swerve.inhibitVision && LimelightHelpers.getTV(m_cam.camname)) {
+            setLLRobotorientation();
             if (m_useMegaTag2) {
                 setLLRobotorientation();
                 LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(m_cam.camname);
                 m_swerve.distanceLimelightToEstimator = mt2.pose.getTranslation()
                         .getDistance(m_swerve.getPoseEstimator().getEstimatedPosition().getTranslation());
-                rejectUpdate = mt2.tagCount == 0 || Math.abs(m_swerve.getGyroRate()) > 720                    
-                        || (mt2.tagCount == 1 && mt2.rawFiducials.length == 1 &&
-                                mt2.rawFiducials[0].ambiguity > .7
-                                && mt2.rawFiducials[0].distToCamera > 5);
+
+                 rejectUpdate = mt2.tagCount == 0 || Math.abs(m_swerve.getGyroRate()) > 720
+                || (mt2.tagCount == 1 && mt2.rawFiducials.length == 1 &&
+                mt2.rawFiducials[0].ambiguity > .7
+                && mt2.rawFiducials[0].distToCamera > 5);
+                
                 if (!rejectUpdate) {
+
                     m_swerve.getPoseEstimator().setVisionMeasurementStdDevs(VecBuilder.fill(1.0,
                             1.0, 9999999));
                     m_swerve.getPoseEstimator().addVisionMeasurement(
@@ -58,8 +61,8 @@ public class LimelightTagsUpdate {
             } else {
 
                 LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(m_cam.camname);
-          
-                rejectUpdate = mt1.tagCount == 0 
+
+                rejectUpdate = mt1.tagCount == 0
                         || mt1.tagCount == 1 && mt1.rawFiducials.length == 1 &&
                                 mt1.rawFiducials[0].ambiguity > .7
                                 && mt1.rawFiducials[0].distToCamera > 5;

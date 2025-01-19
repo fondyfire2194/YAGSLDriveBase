@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.swervedrive;
 
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meter;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -29,15 +30,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -89,16 +87,21 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
    * PhotonVision class to keep an accurate odometry.
    */
 
-  private SwerveDrivePoseEstimator swervePoseEstimator;
-
   private Vision vision;
   public boolean inhibitVision;
-  public Object distanceLimelightToEstimator;
+  public double distanceLimelightToEstimator;
   private static final Matrix<N3, N1> ODOMETRY_STDDEV = VecBuilder.fill(0.03, 0.03, Math.toRadians(1));
   private static final Matrix<N3, N1> VISION_STDDEV = VecBuilder.fill(0.5, 0.5, Math.toRadians(40));
 
   public LimelightTagsUpdate flUpdate = new LimelightTagsUpdate(CameraConstants.frontLeftCamera, this);
   public LimelightTagsUpdate frUpdate = new LimelightTagsUpdate(CameraConstants.frontRightCamera, this);
+
+  public Pose3d[] redReefPoses = new Pose3d[7];
+  public Pose3d[] blueReefPoses = new Pose3d[7];
+  @Log
+  public int reefZone = 0;
+  @Log
+  public Pose2d reefTargetPose;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -169,15 +172,13 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
       swerveDrive.stopOdometryThread();
     }
 
-    swervePoseEstimator = new SwerveDrivePoseEstimator(
-        swerveDrive.kinematics,
-        getYaw(),
-        swerveDrive.getModulePositions(),
-        new Pose2d(),
-        ODOMETRY_STDDEV,
-        VISION_STDDEV);
+    for (int i = 1; i <6; i++) {
+      redReefPoses[i] = getTagPose(VisionConstants.redReefTags[i]);
+      blueReefPoses[i] = getTagPose(VisionConstants.blueReefTags[i]);
+    }
 
     setupPathPlanner();
+
   }
 
   /**
@@ -204,11 +205,10 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   @Override
   public void periodic() {
     // When vision is enabled we must manually update odometry in SwerveDrive
-    if (visionDriveTest) {
-      swerveDrive.updateOdometry();
-      vision.updatePoseEstimation(swerveDrive);
-    }
-
+    // if (visionDriveTest) {
+    swerveDrive.updateOdometry();
+    // vision.updatePoseEstimation(swerveDrive);
+    // }
 
     flUpdate.execute();
 
@@ -219,10 +219,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     // getPose().getMeasureY().baseUnitMagnitude(),
     // getPose().getRotation().getRadians() });
 
-  }
-
-  public SwerveDrivePoseEstimator getPoseEstimator() {
-    return swervePoseEstimator;
   }
 
   @Override
@@ -661,6 +657,10 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     return swerveDrive.getPose();
   }
 
+  public SwerveDrivePoseEstimator getPoseEstimator() {
+    return swerveDrive.swerveDrivePoseEstimator;
+  }
+
   /**
    * Set chassis speeds with closed-loop velocity control.
    *
@@ -849,15 +849,15 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   }
 
   public Pose3d getTagPose(int n) {
-    if (n >= 1 && n <= 22)
+    var tp = aprilTagFieldLayout.getTagPose(n);
+    if (tp.isPresent())
       return aprilTagFieldLayout.getTagPose(n).get();
     else
       return new Pose3d();
   }
 
-  public int getGyroRate() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getGyroRate'");
+  public double getGyroRate() {
+    return swerveDrive.getGyro().getYawAngularVelocity().abs(DegreesPerSecond);
   }
 
 }

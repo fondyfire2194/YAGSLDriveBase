@@ -8,8 +8,9 @@ package frc.robot.utils;
 public class LLPipelines {
 
     public enum pipelines {
-        APRILTAGALL0(0, pipelinetype.fiducialmarkers), // all tage
-        NOTEDET1(1, pipelinetype.detector);
+        APRILTAGALL0(0, pipelinetype.fiducialmarkers), // all tags
+        CORALDET1(1, pipelinetype.detector),
+        ALGAEDET1(1, pipelinetype.detector);
       
 
         public static final pipelines values[] = values();

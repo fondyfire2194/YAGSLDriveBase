@@ -6,22 +6,18 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Meters;
 
-import java.lang.reflect.Member;
 import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.units.DistanceUnit;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.VisionConstants;
 import frc.robot.VisionConstants.CameraConstants;
 import frc.robot.utils.LimelightHelpers;
-import frc.robot.utils.LLPipelines.pipelines;
 
 public class LimelightVision extends SubsystemBase {
   /** Creates a new LimelightVision. */
@@ -51,15 +47,13 @@ public class LimelightVision extends SubsystemBase {
 
   Optional<Pose3d> temp;
 
+
   final int[] autoTagFilter = new int[] { 3, 4, 7, 8 };
   final int[] teleopTagFilter = new int[] { 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16 };
 
   public LimelightVision() {
 
-    if (VisionConstants.CameraConstants.rearCamera.isUsed)
-      LimelightHelpers.setPipelineIndex(VisionConstants.CameraConstants.rearCamera.camname,
-          pipelines.NOTEDET1.ordinal());
-
+  
     if (VisionConstants.CameraConstants.frontLeftCamera.isUsed)
       setCamToRobotOffset(VisionConstants.CameraConstants.frontLeftCamera);
 

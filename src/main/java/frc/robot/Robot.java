@@ -104,6 +104,11 @@ public class Robot extends TimedRobot implements Logged {
     m_robotContainer.setMotorBrake(true);
     disabledTimer.reset();
     disabledTimer.start();
+    
+    m_robotContainer.drivebase.flUpdate.setLLRobotorientation();
+    m_robotContainer.drivebase.frUpdate.setLLRobotorientation();
+    m_robotContainer.drivebase.flUpdate.setUseMegatag2(false);
+    m_robotContainer.drivebase.frUpdate.setUseMegatag2(false);
   }
 
   @Override
@@ -149,6 +154,9 @@ public class Robot extends TimedRobot implements Logged {
       CommandScheduler.getInstance().cancelAll();
     }
     m_robotContainer.setDriveMode();
+    m_robotContainer.drivebase.flUpdate.setUseMegatag2(true);
+    m_robotContainer.drivebase.frUpdate.setUseMegatag2(true);
+    m_robotContainer.drivebase.inhibitVision = false;
   }
 
   /**
