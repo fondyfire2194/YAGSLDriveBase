@@ -97,8 +97,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   public LimelightTagsUpdate flUpdate = new LimelightTagsUpdate(CameraConstants.frontLeftCamera, this);
   public LimelightTagsUpdate frUpdate = new LimelightTagsUpdate(CameraConstants.frontRightCamera, this);
 
-  public Pose3d[] redReefPoses = new Pose3d[7];
-  public Pose3d[] blueReefPoses = new Pose3d[7];
   @Log
   public int reefZone = 0;
 
@@ -186,11 +184,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
       swerveDrive.stopOdometryThread();
     }
 
-    for (int i = 1; i < 6; i++) {
-      redReefPoses[i] = getTagPose(VisionConstants.redReefTags[i]);
-      blueReefPoses[i] = getTagPose(VisionConstants.blueReefTags[i]);
-    }
-
     setupPathPlanner();
 
   }
@@ -237,8 +230,12 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
 
   @Override
   public void simulationPeriodic() {
-    poseTagActive = getTagPose(VisionConstants.redReefTags[reefZone]).toPose2d();
-  
+    if (isRedAlliance())
+      poseTagActive = getTagPose(VisionConstants.redReefTags[reefZone]).toPose2d();
+
+    else
+      poseTagActive = getTagPose(VisionConstants.blueReefTags[reefZone]).toPose2d();
+
   }
 
   /**

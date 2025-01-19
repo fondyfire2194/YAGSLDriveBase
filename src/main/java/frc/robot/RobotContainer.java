@@ -16,10 +16,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.swervedrive.auto.FindRobotReefZone;
+import frc.robot.commands.swervedrive.auto.FindBlueRobotReefZone;
+import frc.robot.commands.swervedrive.auto.FindRedRobotReefZone;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.LimelightVision;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -194,9 +196,17 @@ public class RobotContainer implements Logged {
       driverXbox.rightBumper().onTrue(
           Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(7.372, 6.692, new Rotation2d(Math.PI)))));
 
-      driverXbox.povLeft().onTrue(new FindRobotReefZone(drivebase,true));
-      driverXbox.povRight().onTrue(new FindRobotReefZone(drivebase,false));
-      
+      driverXbox.povLeft().onTrue(
+          new ConditionalCommand(
+              new FindRedRobotReefZone(drivebase, true),
+              new FindBlueRobotReefZone(drivebase, true),
+              () -> isRedAlliance()));
+
+      driverXbox.povRight().onTrue(
+          new ConditionalCommand(
+              new FindRedRobotReefZone(drivebase, false),
+              new FindBlueRobotReefZone(drivebase, false),
+              () -> isRedAlliance()));
 
     }
 
@@ -219,5 +229,14 @@ public class RobotContainer implements Logged {
 
   public void setMotorBrake(boolean brake) {
     drivebase.setMotorBrake(brake);
+  }
+
+  private boolean isRedAlliance() {
+
+    var alliance = DriverStation.getAlliance();
+    if (alliance.isPresent()) {
+      return alliance.get() == DriverStation.Alliance.Red;
+    }
+    return false;
   }
 }

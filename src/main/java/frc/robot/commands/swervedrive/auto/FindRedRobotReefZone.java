@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.VisionConstants;
 import frc.robot.Constants.FieldConstants;
@@ -17,7 +18,7 @@ import frc.robot.Constants.RobotConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class FindRobotReefZone extends Command {
+public class FindRedRobotReefZone extends Command {
   /** Creates a new FindRobotReefZone. */
   SwerveSubsystem m_swerve;
   Pose2d robotPose;
@@ -26,13 +27,12 @@ public class FindRobotReefZone extends Command {
   double robotHeading;
   double yLimitForXHGZone;
 
-  boolean redAlliance;
   boolean exit;
   int tst;
   double yLimitAngle = 60;
   boolean m_leftSide;
 
-  public FindRobotReefZone(SwerveSubsystem swerve, boolean leftSide) {
+  public FindRedRobotReefZone(SwerveSubsystem swerve, boolean leftSide) {
     m_swerve = swerve;
     m_leftSide = leftSide;
     // Use addRequirements() here to declare subsystem dependencies.
@@ -44,10 +44,7 @@ public class FindRobotReefZone extends Command {
 
     exit = false;
 
-    var alliance = DriverStation.getAlliance();
-    if (alliance.isPresent()) {
-      redAlliance = alliance.get() == DriverStation.Alliance.Red;
-    }
+    SmartDashboard.putBoolean("REDRUNNING", true);
 
   }
 
@@ -61,50 +58,48 @@ public class FindRobotReefZone extends Command {
     robotY = robotPose.getY();
     robotHeading = robotPose.getRotation().getDegrees();
 
-    if (redAlliance) {
-
-      if (checkGHZone()) {
-        m_swerve.reefZone = 1;
-        exit = true;
-      }
-
-      if (!exit && checkABZone()) {
-        m_swerve.reefZone = 4;
-        exit = true;
-      }
-
-      if (!exit && checkIJZone()) {
-        m_swerve.reefZone = 2;
-        exit = true;
-      }
-
-      if (!exit && checkKLZone()) {
-        m_swerve.reefZone = 3;
-        exit = true;
-      }
-
-      if (!exit && checkCDZone()) {
-        m_swerve.reefZone = 5;
-        exit = true;
-      }
-
-      if (!exit && checkEFZone()) {
-        m_swerve.reefZone = 6;
-        exit = true;
-      }
-      m_swerve.reefZoneTag = VisionConstants.redReefTags[m_swerve.reefZone];
+    if (checkGHZone()) {
+      m_swerve.reefZone = 1;
+      exit = true;
     }
+
+    if (!exit && checkABZone()) {
+      m_swerve.reefZone = 4;
+      exit = true;
+    }
+
+    if (!exit && checkIJZone()) {
+      m_swerve.reefZone = 2;
+      exit = true;
+    }
+
+    if (!exit && checkKLZone()) {
+      m_swerve.reefZone = 3;
+      exit = true;
+    }
+
+    if (!exit && checkCDZone()) {
+      m_swerve.reefZone = 5;
+      exit = true;
+    }
+
+    if (!exit && checkEFZone()) {
+      m_swerve.reefZone = 6;
+      exit = true;
+    }
+    m_swerve.reefZoneTag = VisionConstants.redReefTags[m_swerve.reefZone];
+
   }
 
   boolean checkGHZone() {
     double plusYBorder = FieldConstants.FIELD_WIDTH / 2
-        + (FieldConstants.reefGHEdgeFromCenterFieldX + RobotConstants.ROBOT_LENGTH / 2 - robotX) *
+        + (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
             Math.tan(Units.degreesToRadians(yLimitAngle));
     double minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / 2
-        - (FieldConstants.reefGHEdgeFromCenterFieldX - robotX) *
+        - (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
             Math.tan(Units.degreesToRadians(yLimitAngle));
 
-    boolean borderX = robotX > FieldConstants.FIELD_LENGTH / 2 && robotX < FieldConstants.reefGHEdgeFromCenterFieldX;
+    boolean borderX = robotX > FieldConstants.FIELD_LENGTH / 2 && robotX < FieldConstants.redReefGHEdgeFromCenterFieldX;
 
     return borderX
         && (robotY < plusYBorder &&
@@ -113,13 +108,13 @@ public class FindRobotReefZone extends Command {
 
   boolean checkABZone() {
     double plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / 2
-        + (robotX - FieldConstants.reefABEdgeFromCenterFieldX) *
+        + (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
             Math.tan(Units.degreesToRadians(yLimitAngle));
     double minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / 2
-        - (robotX - FieldConstants.reefABEdgeFromCenterFieldX) *
+        - (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
             Math.tan(Units.degreesToRadians(yLimitAngle));
 
-    boolean borderX = robotX > FieldConstants.reefABEdgeFromCenterFieldX;
+    boolean borderX = robotX > FieldConstants.redReefABEdgeFromCenterFieldX;
 
     return borderX
         && (robotY < plusYBorder &&
@@ -127,19 +122,19 @@ public class FindRobotReefZone extends Command {
   }
 
   boolean checkCDZone() {
-    return robotX > FieldConstants.reefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
+    return robotX > FieldConstants.redReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
   }
 
   boolean checkIJZone() {
-    return robotX < FieldConstants.reefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
+    return robotX < FieldConstants.redReefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
   }
 
   boolean checkKLZone() {
-    return robotX > FieldConstants.reefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
+    return robotX > FieldConstants.redReefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
   }
 
   boolean checkEFZone() {
-    return robotX < FieldConstants.reefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
+    return robotX < FieldConstants.redReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
   }
 
   // Called once the command ends or is interrupted.
@@ -160,7 +155,7 @@ public class FindRobotReefZone extends Command {
 
       m_swerve.reefTargetPose1 = m_swerve.reefTargetPose.transformBy(tr2d);
 
-      m_swerve.driveToPose(m_swerve.reefTargetPose1).schedule();
+     // m_swerve.driveToPose(m_swerve.reefTargetPose1).schedule();
     }
 
   }
@@ -168,6 +163,6 @@ public class FindRobotReefZone extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return exit;
+    return false;
   }
 }
