@@ -4,19 +4,14 @@
 
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Meters;
-
 import java.util.Optional;
-
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.VisionConstants;
-import frc.robot.VisionConstants.CameraConstants;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.utils.LimelightHelpers;
 
 public class LimelightVision extends SubsystemBase {
@@ -47,27 +42,28 @@ public class LimelightVision extends SubsystemBase {
 
   Optional<Pose3d> temp;
 
-
-  final int[] autoTagFilter = new int[] { 3, 4, 7, 8 };
-  final int[] teleopTagFilter = new int[] { 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16 };
+  final int[] autoTagFilter = new int[] { 10, 11, 6, 7, 8, 9, 21, 22, 17, 18, 19, 20 };
 
   public LimelightVision() {
 
-  
-    if (VisionConstants.CameraConstants.frontLeftCamera.isUsed)
+    if (VisionConstants.CameraConstants.frontLeftCamera.isUsed) {
       setCamToRobotOffset(VisionConstants.CameraConstants.frontLeftCamera);
+    }
 
     if (VisionConstants.CameraConstants.frontRightCamera.isUsed)
       setCamToRobotOffset(VisionConstants.CameraConstants.frontRightCamera);
-
   }
 
-  public void setAutoTagFilter(String camname) {
+  public void setAprilTagFilter(String camname) {
     LimelightHelpers.SetFiducialIDFiltersOverride(camname, autoTagFilter);
   }
 
-  public void setTeleopTagFilter(String camname) {
-    LimelightHelpers.SetFiducialIDFiltersOverride(camname, teleopTagFilter);
+  public void setPOIRight(String camname) {
+    LimelightHelpers.SetFidcuial3DOffset(camname, FieldConstants.centerToReefBranch, 0, 0);
+  }
+
+  public void setPOILeft(String camname) {
+    LimelightHelpers.SetFidcuial3DOffset(camname, FieldConstants.centerToReefBranch, 0, 0);
   }
 
   @Override
@@ -137,45 +133,8 @@ public class LimelightVision extends SubsystemBase {
     SmartDashboard.putBoolean("LL//CamsOK", allcamsok);
   }
 
- 
   public void setCamToRobotOffset(VisionConstants.CameraConstants.CameraValues cam) {
     LimelightHelpers.setCameraPose_RobotSpace(cam.camname, cam.forward, cam.side, cam.up, cam.roll, cam.pitch, cam.yaw);
-  }
-
-  public double getNoteY(double distanceToNote) {
-    return distanceToNote * Math.cos(Math.toRadians(90 - getTX().getDegrees()));
-  }
-
-  public Pose2d getNotePoseFromCamera(double distanceToNote) {
-    double temp = getNoteY(distanceToNote);
-    return new Pose2d(distanceToNote, temp, getTX());
-  }
-
-  public Transform2d getNoteTransform2dFromCamera(double distanceToNote) {
-    double temp = getNoteY(distanceToNote);
-    return new Transform2d(distanceToNote, temp, getTX());
-  }
-
-  // angle target is from the center
-  public Rotation2d getTX() {
-    double tx = LimelightHelpers.getTX(rname);
-    return Rotation2d.fromDegrees(tx);
-  }
-
-  public double getBoundingHorizontalPixels() {
-    return LimelightHelpers.getLimelightNTDouble(rname, "thor");
-  }
-
-  public double rearCameraTX() {
-    return LimelightHelpers.getTX(rname);
-  }
-
-  public double rearCameraTY() {
-    return LimelightHelpers.getTY(rname);
-  }
-
-  public double rearCameraTA() {
-    return LimelightHelpers.getTA(rname);
   }
 
 }

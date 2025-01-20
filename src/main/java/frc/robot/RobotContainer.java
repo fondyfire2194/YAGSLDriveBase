@@ -12,16 +12,20 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.swervedrive.auto.FindBlueRobotReefZone;
-import frc.robot.commands.swervedrive.auto.FindRedRobotReefZone;
+import frc.robot.commands.swervedrive.auto.DriveToNearestBlueReefZone;
+import frc.robot.commands.swervedrive.auto.DriveToNearestCoralStation;
+import frc.robot.commands.swervedrive.auto.DriveToNearestRedReefZone;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.LimelightVision;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -44,9 +48,13 @@ public class RobotContainer implements Logged {
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandXboxController driverXbox = new CommandXboxController(0);
+
   // The robot's subsystems and commands are defined here...
   final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
       "swerve"));
+
+  Trigger reefZoneChange = new Trigger(() -> drivebase.reefZone != drivebase.reefZoneLast);
+
   // Applies deadbands and inverts controls because joysticks
   // are back-right positive while robot
   // controls are front-left positive
@@ -135,6 +143,9 @@ public class RobotContainer implements Logged {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    reefZoneChange.onTrue(rumble(driverXbox, RumbleType.kLeftRumble, 1))
+        .onTrue(new InstantCommand(() -> drivebase.reefZoneLast = drivebase.reefZone));
+
     DriverStation.silenceJoystickConnectionWarning(true);
     autoChooser = AutoBuilder.buildAutoChooser();
     autoChooser.setDefaultOption("One Path", drivebase.getAutonomousCommand("One Path"));
@@ -198,15 +209,18 @@ public class RobotContainer implements Logged {
 
       driverXbox.povLeft().onTrue(
           new ConditionalCommand(
-              new FindRedRobotReefZone(drivebase, true),
-              new FindBlueRobotReefZone(drivebase, true),
+              new DriveToNearestRedReefZone(drivebase, true),
+              new DriveToNearestBlueReefZone(drivebase, true),
               () -> isRedAlliance()));
 
       driverXbox.povRight().onTrue(
           new ConditionalCommand(
-              new FindRedRobotReefZone(drivebase, false),
-              new FindBlueRobotReefZone(drivebase, false),
+              new DriveToNearestRedReefZone(drivebase, false),
+              new DriveToNearestBlueReefZone(drivebase, false),
               () -> isRedAlliance()));
+
+      driverXbox.povUp().onTrue(
+          new DriveToNearestCoralStation(drivebase));
 
     }
 
@@ -238,5 +252,19 @@ public class RobotContainer implements Logged {
       return alliance.get() == DriverStation.Alliance.Red;
     }
     return false;
+  }
+
+  public Command rumble(CommandXboxController controller, RumbleType type, double timeout) {
+    return Commands.sequence(
+        Commands.race(
+            Commands.either(
+                Commands.run(() -> controller.getHID().setRumble(type,
+                    1.0)),
+                Commands.runOnce(() -> SmartDashboard.putString("BUZZ",
+                    "BUZZ")),
+                () -> RobotBase.isReal()),
+            Commands.waitSeconds(timeout)),
+        Commands.runOnce(() -> controller.getHID().setRumble(RumbleType.kBothRumble, 0.0)));
+
   }
 }

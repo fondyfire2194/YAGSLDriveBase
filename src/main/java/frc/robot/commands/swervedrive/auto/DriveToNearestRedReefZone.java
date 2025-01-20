@@ -9,16 +9,14 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.VisionConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class FindRedRobotReefZone extends Command {
+public class DriveToNearestRedReefZone extends Command {
   /** Creates a new FindRobotReefZone. */
   SwerveSubsystem m_swerve;
   Pose2d robotPose;
@@ -29,10 +27,12 @@ public class FindRedRobotReefZone extends Command {
 
   boolean exit;
   int tst;
-  double yLimitAngle = 60;
+  double yLimitAngle = 45;
   boolean m_leftSide;
+  double plusYBorder;
+  double minusYBorder;
 
-  public FindRedRobotReefZone(SwerveSubsystem swerve, boolean leftSide) {
+  public DriveToNearestRedReefZone(SwerveSubsystem swerve, boolean leftSide) {
     m_swerve = swerve;
     m_leftSide = leftSide;
     // Use addRequirements() here to declare subsystem dependencies.
@@ -98,27 +98,35 @@ public class FindRedRobotReefZone extends Command {
 
       double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
 
+      if (m_swerve.isRedAlliance())
+        baseOffset = -baseOffset;
+
       Translation2d tl2d = new Translation2d(-baseOffset, FieldConstants.reefOffset);
       if (m_leftSide)
         tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
       Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
 
-      m_swerve.reefTargetPose1 = m_swerve.reefTargetPose.transformBy(tr2d);
+      m_swerve.reefFinalTargetPose = m_swerve.reefTargetPose.transformBy(tr2d);
 
-      m_swerve.driveToPose(m_swerve.reefTargetPose1).schedule();
+      m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
+      m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
+
+      //exit = false;
+       m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
     }
 
   }
 
   boolean checkGHZone() {
-    double plusYBorder = FieldConstants.FIELD_WIDTH / 2
+    plusYBorder = FieldConstants.FIELD_WIDTH / 2
         + (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
             Math.tan(Units.degreesToRadians(yLimitAngle));
-    double minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / 2
+    minusYBorder = FieldConstants.FIELD_WIDTH / 2
         - (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
             Math.tan(Units.degreesToRadians(yLimitAngle));
 
-    boolean borderX = robotX > FieldConstants.FIELD_LENGTH / 2 && robotX < FieldConstants.redReefGHEdgeFromCenterFieldX;
+    boolean borderX = robotX > FieldConstants.FIELD_LENGTH / 2
+        && robotX < FieldConstants.redReefGHEdgeFromCenterFieldX;
 
     return borderX
         && (robotY < plusYBorder &&
@@ -126,10 +134,10 @@ public class FindRedRobotReefZone extends Command {
   }
 
   boolean checkABZone() {
-    double plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / 2
+    plusYBorder = FieldConstants.FIELD_WIDTH / 2
         + (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
             Math.tan(Units.degreesToRadians(yLimitAngle));
-    double minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / 2
+    minusYBorder = FieldConstants.FIELD_WIDTH / 2
         - (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
             Math.tan(Units.degreesToRadians(yLimitAngle));
 

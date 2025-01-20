@@ -145,9 +145,6 @@
         "open": true
       },
       "SmartDashboard": {
-        "Field": {
-          "open": true
-        },
         "open": true,
         "swerve": {
           "open": true

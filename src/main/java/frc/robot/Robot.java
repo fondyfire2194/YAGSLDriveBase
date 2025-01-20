@@ -5,14 +5,14 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.swervedrive.auto.FindCurrentReefZoneBlue;
+import frc.robot.commands.swervedrive.auto.FindCurrentReefZoneRed;
 import monologue.Logged;
 import monologue.Monologue;
 import monologue.Annotations.Log;
@@ -50,7 +50,6 @@ public class Robot extends TimedRobot implements Logged {
    */
   @Override
   public void robotInit() {
-
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our
@@ -108,7 +107,7 @@ public class Robot extends TimedRobot implements Logged {
     m_robotContainer.setMotorBrake(true);
     disabledTimer.reset();
     disabledTimer.start();
-    
+
     m_robotContainer.drivebase.flUpdate.setLLRobotorientation();
     m_robotContainer.drivebase.frUpdate.setLLRobotorientation();
     m_robotContainer.drivebase.flUpdate.setUseMegatag2(false);
@@ -130,7 +129,7 @@ public class Robot extends TimedRobot implements Logged {
   @Override
   public void autonomousInit() {
     m_robotContainer.setMotorBrake(true);
- 
+
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)
@@ -161,6 +160,12 @@ public class Robot extends TimedRobot implements Logged {
     m_robotContainer.drivebase.flUpdate.setUseMegatag2(true);
     m_robotContainer.drivebase.frUpdate.setUseMegatag2(true);
     m_robotContainer.drivebase.inhibitVision = false;
+
+    if (m_robotContainer.drivebase.isRedAlliance())
+      new FindCurrentReefZoneRed(m_robotContainer.drivebase).schedule();
+    if (m_robotContainer.drivebase.isBlueAlliance())
+      new FindCurrentReefZoneBlue(m_robotContainer.drivebase).schedule();
+
   }
 
   /**
@@ -189,13 +194,13 @@ public class Robot extends TimedRobot implements Logged {
    */
   @Override
   public void simulationInit() {
-   
+
   }
 
   /**
    * This function is called periodically whilst in simulation.
    */
   @Override
-  public void simulationPeriodic() { 
+  public void simulationPeriodic() {
   }
 }

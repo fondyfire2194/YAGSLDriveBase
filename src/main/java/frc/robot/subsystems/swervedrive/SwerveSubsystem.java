@@ -20,8 +20,6 @@ import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -30,21 +28,20 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
-import frc.robot.Constants.FieldConstants;
 import frc.robot.VisionConstants.CameraConstants;
-import frc.robot.subsystems.swervedrive.Vision.Cameras;
 import frc.robot.utils.LimelightTagsUpdate;
 import monologue.Annotations.Log;
 import monologue.Logged;
@@ -52,12 +49,10 @@ import monologue.Logged;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.json.simple.parser.ParseException;
-import org.photonvision.targeting.PhotonPipelineResult;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
@@ -89,29 +84,39 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   private Vision vision;
   public boolean inhibitVision;
   public double distanceLimelightToEstimator;
-  private static final Matrix<N3, N1> ODOMETRY_STDDEV = VecBuilder.fill(0.03, 0.03, Math.toRadians(1));
-  private static final Matrix<N3, N1> VISION_STDDEV = VecBuilder.fill(0.5, 0.5, Math.toRadians(40));
+  // private static final Matrix<N3, N1> ODOMETRY_STDDEV = VecBuilder.fill(0.03,
+  // 0.03, Math.toRadians(1));
+  // private static final Matrix<N3, N1> VISION_STDDEV = VecBuilder.fill(0.5, 0.5,
+  // Math.toRadians(40));
 
   public LimelightTagsUpdate flUpdate = new LimelightTagsUpdate(CameraConstants.frontLeftCamera, this);
   public LimelightTagsUpdate frUpdate = new LimelightTagsUpdate(CameraConstants.frontRightCamera, this);
 
   @Log
   public int reefZone = 0;
+  public int reefZoneLast = 0;
 
   @Log
   public int reefZoneTag = 0;
-
   @Log
   public Pose2d reefTargetPose;
-
   @Log
-  public Pose2d reefTargetPose1;
-
+  public Pose2d reefFinalTargetPose;
   @Log
   public Pose2d poseTagActive;
-
   @Log
   double tagHeading;
+  @Log
+  public int coralStationTag;
+  @Log
+  public Pose2d coralStationTargetPose;
+  @Log
+  public Pose2d coralStationFinalTargetPose;
+
+  @Log
+  public Pose2d plusBorderPose;
+  @Log
+  public Pose2d minusBorderPose;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -228,11 +233,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
 
   @Override
   public void simulationPeriodic() {
-    if (isRedAlliance())
-      poseTagActive = getTagPose(FieldConstants.redReefTags[reefZone]).toPose2d();
-
-    else
-      poseTagActive = getTagPose(FieldConstants.blueReefTags[reefZone]).toPose2d();
 
   }
 
@@ -304,27 +304,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   }
 
   /**
-   * Aim the robot at the target returned by PhotonVision.
-   *
-   * @return A {@link Command} which will run the alignment.
-   */
-  public Command aimAtTarget(Cameras camera) {
-
-    return run(() -> {
-      Optional<PhotonPipelineResult> resultO = camera.getBestResult();
-      if (resultO.isPresent()) {
-        var result = resultO.get();
-        if (result.hasTargets()) {
-          drive(getTargetSpeeds(0,
-              0,
-              Rotation2d.fromDegrees(result.getBestTarget()
-                  .getYaw()))); // Not sure if this will work, more math may be required.
-        }
-      }
-    });
-  }
-
-  /**
    * Get the path follower with events.
    *
    * @param pathName PathPlanner path name.
@@ -334,6 +313,10 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     // Create a path following command using AutoBuilder. This will also trigger
     // event markers.
     return new PathPlannerAuto(pathAutoName);
+  }
+
+  public Command driveToReef() {
+    return driveToPose(reefFinalTargetPose);
   }
 
   /**
@@ -407,7 +390,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
       DriverStation.reportError(e.toString(), true);
     }
     return Commands.none();
-
   }
 
   /**
@@ -655,9 +637,14 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
    * @return true if the red alliance, false if blue. Defaults to false if none is
    *         available.
    */
-  private boolean isRedAlliance() {
+  public boolean isRedAlliance() {
     var alliance = DriverStation.getAlliance();
     return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
+  }
+
+  public boolean isBlueAlliance() {
+    var alliance = DriverStation.getAlliance();
+    return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Blue : false;
   }
 
   /**
@@ -820,6 +807,19 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
 
   public double getGyroRate() {
     return swerveDrive.getGyro().getYawAngularVelocity().abs(DegreesPerSecond);
+  }
+
+  public Command rumble(CommandXboxController controller, RumbleType type, double timeout) {
+    return Commands.sequence(
+        Commands.race(
+            Commands.either(
+                Commands.run(() -> controller.getHID().setRumble(type,
+                    1.0)),
+                Commands.runOnce(() -> SmartDashboard.putString("BUZZ",
+                    "BUZZ")),
+                () -> RobotBase.isReal()),
+            Commands.waitSeconds(timeout)),
+        Commands.runOnce(() -> controller.getHID().setRumble(RumbleType.kBothRumble, 0.0)));
   }
 
 }
