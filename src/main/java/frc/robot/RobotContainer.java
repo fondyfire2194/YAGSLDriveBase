@@ -151,8 +151,7 @@ public class RobotContainer implements Logged {
     autoChooser.setDefaultOption("One Path", drivebase.getAutonomousCommand("One Path"));
     autoChooser.addOption("Two Path", drivebase.getAutonomousCommand("Two Path"));
     autoChooser.addOption("Three Path", drivebase.getAutonomousCommand("Three Path"));
-    autoChooser.addOption("Abigail", drivebase.getAutonomousCommand("Abigail"));
-
+   
     SmartDashboard.putData("PPAutoChooser", autoChooser);
 
     NamedCommands.registerCommand("test", Commands.print("I EXIST"));

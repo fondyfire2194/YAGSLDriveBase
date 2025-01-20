@@ -132,6 +132,9 @@
             "Rotation2d##v_rotation": {
               "open": true
             },
+            "Translation2d##v_translation": {
+              "open": true
+            },
             "open": true
           },
           "Pose2d##v_/Monologue/drivebase/result": {
