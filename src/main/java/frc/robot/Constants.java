@@ -65,6 +65,8 @@ public final class Constants {
     public static final double blueReefMidFromCenterFieldX = Units.inchesToMeters(144 + 65.5 / 2);
 
     public static final double reefSideWidth = Units.inchesToMeters(37.82);
+    public static final double reefSideWidthDiv = 4;
+
     public static double reefOffset = Units.inchesToMeters(6.5);
     public static final double centerToReefBranch = Units.inchesToMeters(13);
 

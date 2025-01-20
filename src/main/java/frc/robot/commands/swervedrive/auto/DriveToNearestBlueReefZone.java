@@ -26,7 +26,7 @@ public class DriveToNearestBlueReefZone extends Command {
 
   boolean exit;
   int tst;
-  
+
   boolean m_leftSide;
   double plusYBorder;
   double minusYBorder;
@@ -102,19 +102,18 @@ public class DriveToNearestBlueReefZone extends Command {
       m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
 
       m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
- 
+
     }
   }
 
-  boolean checkGHZone() {   
+  boolean checkGHZone() {
 
-    plusYBorder = FieldConstants.FIELD_WIDTH / 2
+    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         + (robotX - FieldConstants.blueReefGHEdgeFromFieldOrigin) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
-    minusYBorder = FieldConstants.FIELD_WIDTH / 2
+    minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         - (robotX - FieldConstants.blueReefGHEdgeFromFieldOrigin) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
-
 
     boolean borderX = robotX < FieldConstants.FIELD_LENGTH / 2
         && robotX > FieldConstants.blueReefGHEdgeFromFieldOrigin;
@@ -124,13 +123,12 @@ public class DriveToNearestBlueReefZone extends Command {
   }
 
   boolean checkABZone() {
-    plusYBorder = FieldConstants.FIELD_WIDTH /2
+    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         + (FieldConstants.blueReefABEdgeFromFieldOrigin - robotX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
-    minusYBorder = FieldConstants.FIELD_WIDTH / 2
+    minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         - (FieldConstants.blueReefABEdgeFromFieldOrigin - robotX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
-
 
     boolean borderX = robotX < FieldConstants.blueReefABEdgeFromFieldOrigin;
 

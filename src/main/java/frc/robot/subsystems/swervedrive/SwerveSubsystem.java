@@ -99,24 +99,24 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   @Log
   public int reefZoneTag = 0;
   @Log
-  public Pose2d reefTargetPose;
+  public Pose2d reefTargetPose= new Pose2d();;
   @Log
-  public Pose2d reefFinalTargetPose;
+  public Pose2d reefFinalTargetPose= new Pose2d();;
   @Log
-  public Pose2d poseTagActive;
+  public Pose2d poseTagActive = new Pose2d();
   @Log
   double tagHeading;
   @Log
   public int coralStationTag;
   @Log
-  public Pose2d coralStationTargetPose;
+  public Pose2d coralStationTargetPose= new Pose2d();;
   @Log
-  public Pose2d coralStationFinalTargetPose;
+  public Pose2d coralStationFinalTargetPose= new Pose2d();;
 
   @Log
-  public Pose2d plusBorderPose;
+  public Pose2d plusBorderPose= new Pose2d();;
   @Log
-  public Pose2d minusBorderPose;
+  public Pose2d minusBorderPose= new Pose2d();;
   public double yZoneLimitAngle = 60;
 
   /**
@@ -314,10 +314,6 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
     // Create a path following command using AutoBuilder. This will also trigger
     // event markers.
     return new PathPlannerAuto(pathAutoName);
-  }
-
-  public Command driveToReef() {
-    return driveToPose(reefFinalTargetPose);
   }
 
   /**
