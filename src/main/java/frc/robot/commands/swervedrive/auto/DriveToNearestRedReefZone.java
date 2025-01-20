@@ -27,7 +27,7 @@ public class DriveToNearestRedReefZone extends Command {
 
   boolean exit;
   int tst;
-  double yLimitAngle = 45;
+
   boolean m_leftSide;
   double plusYBorder;
   double minusYBorder;
@@ -111,7 +111,6 @@ public class DriveToNearestRedReefZone extends Command {
       m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
       m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
 
-      //exit = false;
        m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
     }
 
@@ -120,10 +119,10 @@ public class DriveToNearestRedReefZone extends Command {
   boolean checkGHZone() {
     plusYBorder = FieldConstants.FIELD_WIDTH / 2
         + (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
     minusYBorder = FieldConstants.FIELD_WIDTH / 2
         - (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
     boolean borderX = robotX > FieldConstants.FIELD_LENGTH / 2
         && robotX < FieldConstants.redReefGHEdgeFromCenterFieldX;
@@ -136,10 +135,10 @@ public class DriveToNearestRedReefZone extends Command {
   boolean checkABZone() {
     plusYBorder = FieldConstants.FIELD_WIDTH / 2
         + (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
     minusYBorder = FieldConstants.FIELD_WIDTH / 2
         - (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
     boolean borderX = robotX > FieldConstants.redReefABEdgeFromCenterFieldX;
 

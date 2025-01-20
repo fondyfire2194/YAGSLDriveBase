@@ -5,6 +5,7 @@
 package frc.robot.commands.swervedrive.auto;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,22 +21,20 @@ public class FindCurrentReefZoneBlue extends Command {
   double robotY;
   double robotHeading;
   double yLimitForXHGZone;
-
+  double plusYBorder;
+  double minusYBorder;
   boolean zoneFound;
   int tst;
-  double yLimitAngle = 60;
-  
 
   public FindCurrentReefZoneBlue(SwerveSubsystem swerve) {
     m_swerve = swerve;
-  
+
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-
 
     SmartDashboard.putBoolean("BLUERUNNING", true);
     zoneFound = false;
@@ -80,16 +79,25 @@ public class FindCurrentReefZoneBlue extends Command {
       m_swerve.reefZone = 2;
       zoneFound = true;
     }
+    m_swerve.reefZoneTag = FieldConstants.blueReefTags[m_swerve.reefZone];
+
+    int tagNumber = FieldConstants.blueReefTags[m_swerve.reefZone];
+
+    m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
+    m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
+
+    m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
+
   }
 
   boolean checkGHZone() {
 
-    double plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / 2
+     plusYBorder = FieldConstants.FIELD_WIDTH / 2 
         + (robotX - FieldConstants.blueReefGHEdgeFromFieldOrigin) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
-    double minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / 2
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
+     minusYBorder = FieldConstants.FIELD_WIDTH / 2 
         - (robotX - FieldConstants.blueReefGHEdgeFromFieldOrigin) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
     boolean borderX = robotX < FieldConstants.FIELD_LENGTH / 2
         && robotX > FieldConstants.blueReefGHEdgeFromFieldOrigin;
@@ -100,12 +108,12 @@ public class FindCurrentReefZoneBlue extends Command {
   }
 
   boolean checkABZone() {
-    double plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / 2
+    plusYBorder = FieldConstants.FIELD_WIDTH / 2
         + (FieldConstants.blueReefABEdgeFromFieldOrigin - robotX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
-    double minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / 2
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
+    minusYBorder = FieldConstants.FIELD_WIDTH / 2
         - (FieldConstants.blueReefABEdgeFromFieldOrigin - robotX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
     boolean borderX = robotX < FieldConstants.blueReefABEdgeFromFieldOrigin;
 

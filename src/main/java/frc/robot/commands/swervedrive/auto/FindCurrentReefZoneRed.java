@@ -5,6 +5,7 @@
 package frc.robot.commands.swervedrive.auto;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -23,7 +24,7 @@ public class FindCurrentReefZoneRed extends Command {
 
   boolean zoneFound;
   int tst;
-  double yLimitAngle = 45;
+  
 
   double plusYBorder;
   double minusYBorder;
@@ -81,17 +82,27 @@ public class FindCurrentReefZoneRed extends Command {
 
     if (!zoneFound && checkEFZone()) {
       m_swerve.reefZone = 6;
-      zoneFound = true;    
+      zoneFound = true;
     }
+
+    m_swerve.reefZoneTag = FieldConstants.redReefTags[m_swerve.reefZone];
+
+    int tagNumber = FieldConstants.redReefTags[m_swerve.reefZone];
+
+    m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
+
+    m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
+    m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
+
   }
 
   boolean checkGHZone() {
     plusYBorder = FieldConstants.FIELD_WIDTH / 2
         + (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
     minusYBorder = FieldConstants.FIELD_WIDTH / 2
         - (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
     boolean borderX = robotX > FieldConstants.FIELD_LENGTH / 2
         && robotX < FieldConstants.redReefGHEdgeFromCenterFieldX;
@@ -104,10 +115,10 @@ public class FindCurrentReefZoneRed extends Command {
   boolean checkABZone() {
     plusYBorder = FieldConstants.FIELD_WIDTH / 2
         + (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
     minusYBorder = FieldConstants.FIELD_WIDTH / 2
         - (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
-            Math.tan(Units.degreesToRadians(yLimitAngle));
+            Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
     boolean borderX = robotX > FieldConstants.redReefABEdgeFromCenterFieldX;
 

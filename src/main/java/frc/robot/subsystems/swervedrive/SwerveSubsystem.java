@@ -117,6 +117,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   public Pose2d plusBorderPose;
   @Log
   public Pose2d minusBorderPose;
+  public double yZoneLimitAngle = 60;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
