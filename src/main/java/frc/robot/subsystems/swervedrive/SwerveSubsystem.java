@@ -99,9 +99,9 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   @Log
   public int reefZoneTag = 0;
   @Log
-  public Pose2d reefTargetPose= new Pose2d();;
+  public Pose2d reefTargetPose = new Pose2d();;
   @Log
-  public Pose2d reefFinalTargetPose= new Pose2d();;
+  public Pose2d reefFinalTargetPose = new Pose2d();;
   @Log
   public Pose2d poseTagActive = new Pose2d();
   @Log
@@ -109,15 +109,20 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   @Log
   public int coralStationTag;
   @Log
-  public Pose2d coralStationTargetPose= new Pose2d();;
+  public Pose2d coralStationTargetPose = new Pose2d();;
   @Log
-  public Pose2d coralStationFinalTargetPose= new Pose2d();;
-
+  public Pose2d coralStationFinalTargetPose = new Pose2d();;
   @Log
-  public Pose2d plusBorderPose= new Pose2d();;
+  public Pose2d plusBorderPose = new Pose2d();;
   @Log
-  public Pose2d minusBorderPose= new Pose2d();;
+  public Pose2d minusBorderPose = new Pose2d();;
   public double yZoneLimitAngle = 60;
+  @Log
+  public int processorStationTag;
+  @Log
+  public Pose2d processorStationTargetPose;
+  @Log
+public Pose2d processorStationFinalTargetPose;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.

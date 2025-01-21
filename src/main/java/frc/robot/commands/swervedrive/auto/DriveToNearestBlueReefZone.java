@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.FieldConstants.Side;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
@@ -26,14 +27,14 @@ public class DriveToNearestBlueReefZone extends Command {
 
   boolean exit;
   int tst;
-
-  boolean m_leftSide;
+  Side m_side;
   double plusYBorder;
   double minusYBorder;
+  Translation2d tl2d;
 
-  public DriveToNearestBlueReefZone(SwerveSubsystem swerve, boolean leftSide) {
+  public DriveToNearestBlueReefZone(SwerveSubsystem swerve, Side side) {
     m_swerve = swerve;
-    m_leftSide = leftSide;
+    m_side = side;
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -84,16 +85,20 @@ public class DriveToNearestBlueReefZone extends Command {
       exit = true;
     }
     if (m_swerve.reefZone != 0) {
-
       m_swerve.reefZoneTag = FieldConstants.blueReefTags[m_swerve.reefZone];
       int tagNumber = FieldConstants.blueReefTags[m_swerve.reefZone];
       m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
 
       double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
 
-      Translation2d tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
-      if (m_leftSide)
+      tl2d = new Translation2d(baseOffset, 0);
+
+      if (m_side == Side.RIGHT)
+        tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
+
+      if (m_side == Side.LEFT)
         tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
+        
       Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
 
       m_swerve.reefFinalTargetPose = m_swerve.reefTargetPose.transformBy(tr2d);
@@ -101,7 +106,7 @@ public class DriveToNearestBlueReefZone extends Command {
       m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
       m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
 
-     // m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
+      // m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
 
     }
   }

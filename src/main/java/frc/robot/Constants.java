@@ -6,7 +6,6 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Distance;
 import swervelib.math.Matter;
 
 /**
@@ -72,17 +71,23 @@ public final class Constants {
 
     public static int[] blueReefTags = { 0, 21, 22, 17, 18, 19, 20 };
     public static int[] blueCoralStationTags = { 13, 12 };
-
+    public static int blueProcessorTag = 16;
     public static int[] redReefTags = { 0, 10, 11, 6, 7, 8, 9 };
     public static int[] redCoralStationTags = { 2, 1 };
-    
+    public static int redProcessorTag = 3;
 
+    public static enum Side {
+      LEFT,
+      CENTER,
+      RIGHT
+    }
   }
 
   public static class RobotConstants {
     public static final double ROBOT_LENGTH = Units.inchesToMeters(28);
     public static final double placementOffset = Units.inchesToMeters(12);
     public static final double pickupOffset = Units.inchesToMeters(8);
+    public static double algaeOffset = 6;
 
   }
 }

@@ -12,6 +12,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.FieldConstants.Side;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
@@ -27,14 +28,14 @@ public class DriveToNearestRedReefZone extends Command {
 
   boolean exit;
   int tst;
-
-  boolean m_leftSide;
+  Side m_side;
   double plusYBorder;
   double minusYBorder;
+  Translation2d tl2d;
 
-  public DriveToNearestRedReefZone(SwerveSubsystem swerve, boolean leftSide) {
+  public DriveToNearestRedReefZone(SwerveSubsystem swerve, Side side) {
     m_swerve = swerve;
-    m_leftSide = leftSide;
+    m_side = side;
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -98,9 +99,13 @@ public class DriveToNearestRedReefZone extends Command {
 
       double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
 
-      Translation2d tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
-      if (m_leftSide)
+      if (m_side == Side.CENTER)
+        tl2d = new Translation2d(baseOffset, 0);
+      if (m_side == Side.RIGHT)
+        tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
+      if (m_side == Side.LEFT)
         tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
+
       Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
 
       m_swerve.reefFinalTargetPose = m_swerve.reefTargetPose.transformBy(tr2d);
@@ -108,7 +113,7 @@ public class DriveToNearestRedReefZone extends Command {
       m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
       m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
 
-     // m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
+      // m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
     }
 
   }
