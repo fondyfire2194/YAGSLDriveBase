@@ -68,10 +68,8 @@ public class DriveToNearestCoralStation extends Command {
 
     double baseOffset = RobotConstants.pickupOffset + RobotConstants.ROBOT_LENGTH / 2;
 
-    if (m_swerve.isRedAlliance())
-      baseOffset = -baseOffset;
 
-    Translation2d tl2d = new Translation2d(-baseOffset, 0);
+    Translation2d tl2d = new Translation2d(baseOffset, 0);
 
     Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(0)));
 

@@ -91,7 +91,7 @@ public class DriveToNearestBlueReefZone extends Command {
 
       double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
 
-      Translation2d tl2d = new Translation2d(-baseOffset, FieldConstants.reefOffset);
+      Translation2d tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
       if (m_leftSide)
         tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
       Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
@@ -101,7 +101,7 @@ public class DriveToNearestBlueReefZone extends Command {
       m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
       m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
 
-      m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
+     // m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
 
     }
   }

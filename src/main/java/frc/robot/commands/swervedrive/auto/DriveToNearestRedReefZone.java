@@ -98,10 +98,7 @@ public class DriveToNearestRedReefZone extends Command {
 
       double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
 
-      if (m_swerve.isRedAlliance())
-        baseOffset = -baseOffset;
-
-      Translation2d tl2d = new Translation2d(-baseOffset, FieldConstants.reefOffset);
+      Translation2d tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
       if (m_leftSide)
         tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
       Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
@@ -111,16 +108,16 @@ public class DriveToNearestRedReefZone extends Command {
       m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
       m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
 
-       m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
+     // m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
     }
 
   }
 
   boolean checkGHZone() {
-    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth /FieldConstants.reefSideWidthDiv
+    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         + (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
-    minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth /FieldConstants.reefSideWidthDiv
+    minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         - (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
@@ -133,10 +130,10 @@ public class DriveToNearestRedReefZone extends Command {
   }
 
   boolean checkABZone() {
-    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth /FieldConstants.reefSideWidthDiv
+    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         + (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
-    minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth /FieldConstants.reefSideWidthDiv
+    minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         - (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 

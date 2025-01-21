@@ -19,7 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "JtoCoSt"
+            "pathName": "JToCoSt"
           }
         },
         {
@@ -43,7 +43,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "KtoCoSt"
+            "pathName": "HToCoSt"
           }
         },
         {

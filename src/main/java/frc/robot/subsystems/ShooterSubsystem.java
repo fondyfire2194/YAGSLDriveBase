@@ -40,11 +40,11 @@ public class ShooterSubsystem extends SubsystemBase {
   private SparkMaxConfig topConfig;
   private SparkMaxConfig bottomConfig;
 
-  public AngularVelocity topCommandRPM = RPM.of(500);
-  public AngularVelocity bottomCommandRPM = RPM.of(500);
+  public double topCommandRPM =500;
+  public double bottomCommandRPM = 500;
 
-  private AngularVelocity topSimRPM = RPM.of(0);
-  private AngularVelocity bottomSimRPM = RPM.of(0);
+  private double topSimRPM = 500;
+  private double bottomSimRPM = 500;
 
   private boolean shootersatspeed;
 
@@ -125,15 +125,15 @@ public class ShooterSubsystem extends SubsystemBase {
     bottomRoller.stopMotor();
     topSpeedLimiter.reset(0);
     bottomSpeedLimiter.reset(0);
-    topSimRPM = RPM.of(0);
-    bottomSimRPM = RPM.of(0);
+    topSimRPM = 0;
+    bottomSimRPM = 0;
   }
 
   public Command stopShooterCommand() {
     return Commands.parallel(
         Commands.runOnce(() -> stopMotors()),
-        Commands.runOnce(() -> topCommandRPM = RPM.of(500)),
-        Commands.runOnce(() -> bottomCommandRPM = RPM.of(500)));
+        Commands.runOnce(() -> topCommandRPM =0),
+        Commands.runOnce(() -> bottomCommandRPM =0));
 
   }
 
@@ -147,23 +147,23 @@ public class ShooterSubsystem extends SubsystemBase {
     shootertolerancepct = 10;
   }
 
-  public Command startShooterCommand(AngularVelocity rpm) {
+  public Command startShooterCommand(double rpm) {
     return Commands.run(() -> startShooter(rpm))
         .until(() -> bothAtSpeed());
   }
 
-  public Command startShooterCommand(AngularVelocity toprpm, AngularVelocity bottomrpm) {
+  public Command startShooterCommand(double toprpm, double bottomrpm) {
     return Commands.run(() -> startShooter(toprpm, bottomrpm))
         .until(() -> bothAtSpeed());
   }
 
-  public void startShooter(AngularVelocity rpm) {
+  public void startShooter(double rpm) {
     topCommandRPM = rpm;
     bottomCommandRPM = rpm;
     setRunShooter();
   }
 
-  public void startShooter(AngularVelocity toprpm, AngularVelocity bottomrpm) {
+  public void startShooter(double toprpm, double bottomrpm) {
     topCommandRPM = toprpm;
     bottomCommandRPM = bottomrpm;
     setRunShooter();
@@ -181,44 +181,41 @@ public class ShooterSubsystem extends SubsystemBase {
     return runShooterVel;
   }
 
-  public AngularVelocity getRPMTop() {
+  public double getRPMTop() {
     if (RobotBase.isReal())
-      return RPM.of(topRoller.getEncoder().getVelocity());
+      return topRoller.getEncoder().getVelocity();
     else
       return topSimRPM;
   }
 
-  public AngularVelocity getRPMBottom() {
+  public double getRPMBottom() {
     if (RobotBase.isReal())
-      return RPM.of(bottomRoller.getEncoder().getVelocity());
+      return bottomRoller.getEncoder().getVelocity();
     else
       return bottomSimRPM;
   }
 
 
-  public void setCommandRPM(AngularVelocity rpm) {
+  public void setCommandRPM(double rpm) {
     topCommandRPM = rpm;
     bottomCommandRPM = rpm;
   }
 
 
   public boolean topAtSpeed() {
-    return !topCommandRPM.equals(0) &&
-        Math.abs(topCommandRPM.in(RPM) - (getRPMTop().in(RPM))) < topCommandRPM.in(RPM) * shootertolerancepct / 100;
+    return true;
   }
 
   public boolean bottomAtSpeed() {
-    return !bottomCommandRPM.equals(0)
-        && Math.abs(bottomCommandRPM.in(RPM) - (getRPMBottom().in(RPM))) < bottomCommandRPM.in(RPM)
-            * shootertolerancepct / 100;
+    return true;
   }
 
-  public AngularVelocity getTopRPMError() {
-    return topCommandRPM.minus(getRPMTop());
+  public double getTopRPMError() {
+    return topCommandRPM - getRPMTop();
   }
 
-  public AngularVelocity getBottomRPMError() {
-    return bottomCommandRPM.minus(getRPMBottom());
+  public double getBottomRPMError() {
+    return bottomCommandRPM - getRPMBottom();
   }
 
   public boolean bothAtSpeed() {
@@ -263,14 +260,14 @@ public class ShooterSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Shooter/RPM", topCommandRPM.in(RPM));
+    SmartDashboard.putNumber("Shooter/RPM", topCommandRPM);
 
     if (runShooterVel) {
-      AngularVelocity toprpm = getTopCommandRPM();
-      AngularVelocity bottomrpm = getBottomCommandRPM();
+      double toprpm = getTopCommandRPM();
+      double bottomrpm = getBottomCommandRPM();
       if (RobotBase.isReal()) {
-        topController.setReference(topSpeedLimiter.calculate(toprpm.in(RPM)), ControlType.kVelocity);
-        bottomController.setReference(bottomSpeedLimiter.calculate(bottomrpm.in(RPM)), ControlType.kVelocity);
+        topController.setReference(topSpeedLimiter.calculate(toprpm), ControlType.kVelocity);
+        bottomController.setReference(bottomSpeedLimiter.calculate(bottomrpm), ControlType.kVelocity);
       }
     } else {
       stopMotors();
@@ -298,11 +295,11 @@ public class ShooterSubsystem extends SubsystemBase {
         runOnce(() -> bottomMotorConnected = false));
   }
 
-  private AngularVelocity getTopCommandRPM() {
+  private double getTopCommandRPM() {
     return topCommandRPM;
   }
 
-  private AngularVelocity getBottomCommandRPM() {
+  private double getBottomCommandRPM() {
     return bottomCommandRPM;
   }
 

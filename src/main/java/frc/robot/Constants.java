@@ -75,6 +75,7 @@ public final class Constants {
 
     public static int[] redReefTags = { 0, 10, 11, 6, 7, 8, 9 };
     public static int[] redCoralStationTags = { 2, 1 };
+    
 
   }
 
