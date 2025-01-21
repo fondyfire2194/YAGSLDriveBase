@@ -66,7 +66,7 @@ public final class Constants {
     public static final double reefSideWidth = Units.inchesToMeters(37.82);
     public static final double reefSideWidthDiv = 4;
 
-    public static double reefOffset = Units.inchesToMeters(6.5);
+    public static final double reefOffset = Units.inchesToMeters(6.5);
     public static final double centerToReefBranch = Units.inchesToMeters(13);
 
     public static int[] blueReefTags = { 0, 21, 22, 17, 18, 19, 20 };

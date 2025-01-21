@@ -9,15 +9,16 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.FieldConstants.Side;
+import frc.robot.VisionConstants.CameraConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
+
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class DriveToNearestRedReefZone extends Command {
+public class DriveToNearestBlueReefTag extends Command {
   /** Creates a new FindRobotReefZone. */
   SwerveSubsystem m_swerve;
   Pose2d robotPose;
@@ -32,8 +33,9 @@ public class DriveToNearestRedReefZone extends Command {
   double plusYBorder;
   double minusYBorder;
   Translation2d tl2d;
+  String camName = CameraConstants.frontLeftCamera.camname;
 
-  public DriveToNearestRedReefZone(SwerveSubsystem swerve, Side side) {
+  public DriveToNearestBlueReefTag(SwerveSubsystem swerve, Side side) {
     m_swerve = swerve;
     m_side = side;
     // Use addRequirements() here to declare subsystem dependencies.
@@ -44,9 +46,6 @@ public class DriveToNearestRedReefZone extends Command {
   public void initialize() {
 
     exit = false;
-
-    SmartDashboard.putBoolean("REDRUNNING", true);
-
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -70,39 +69,36 @@ public class DriveToNearestRedReefZone extends Command {
     }
 
     if (!exit && checkIJZone()) {
-      m_swerve.reefZone = 2;
-      exit = true;
-    }
-
-    if (!exit && checkKLZone()) {
-      m_swerve.reefZone = 3;
-      exit = true;
-    }
-
-    if (!exit && checkCDZone()) {
       m_swerve.reefZone = 5;
       exit = true;
     }
 
-    if (!exit && checkEFZone()) {
+    if (!exit && checkKLZone()) {
       m_swerve.reefZone = 6;
       exit = true;
     }
 
+    if (!exit && checkCDZone()) {
+      m_swerve.reefZone = 3;
+      exit = true;
+    }
+
+    if (!exit && checkEFZone()) {
+      m_swerve.reefZone = 2;
+      exit = true;
+    }
     if (m_swerve.reefZone != 0) {
-
-      m_swerve.reefZoneTag = FieldConstants.redReefTags[m_swerve.reefZone];
-
-      int tagNumber = FieldConstants.redReefTags[m_swerve.reefZone];
-
+      m_swerve.reefZoneTag = FieldConstants.blueReefTags[m_swerve.reefZone];
+      int tagNumber = FieldConstants.blueReefTags[m_swerve.reefZone];
       m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
 
       double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
 
-      if (m_side == Side.CENTER)
-        tl2d = new Translation2d(baseOffset, 0);
+      tl2d = new Translation2d(baseOffset, 0);
+
       if (m_side == Side.RIGHT)
         tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
+
       if (m_side == Side.LEFT)
         tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
 
@@ -114,21 +110,29 @@ public class DriveToNearestRedReefZone extends Command {
       m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
 
       m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
-    }
 
+      // if (RobotBase.isReal()) {
+      //   double kP = .00001;
+      //   if (LimelightHelpers.getFiducialID(camName) == tagNumber ) {
+      //     double xErrorAngle = LimelightHelpers.getTX(camName);
+      //     PPHolonomicDriveController.overrideXFeedback(() -> xErrorAngle * kP);
+      //     // PPHolonomicDriveController.clearFeedbackOverrides();
+      //   }
+      // }
+    }
   }
 
   boolean checkGHZone() {
+
     plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
-        + (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
+        + (robotX - FieldConstants.blueReefGHEdgeFromFieldOrigin) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
     minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
-        - (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
+        - (robotX - FieldConstants.blueReefGHEdgeFromFieldOrigin) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
-    boolean borderX = robotX > FieldConstants.FIELD_LENGTH / 2
-        && robotX < FieldConstants.redReefGHEdgeFromCenterFieldX;
-
+    boolean borderX = robotX < FieldConstants.FIELD_LENGTH / 2
+        && robotX > FieldConstants.blueReefGHEdgeFromFieldOrigin;
     return borderX
         && (robotY < plusYBorder &&
             robotY > minusYBorder);
@@ -136,13 +140,13 @@ public class DriveToNearestRedReefZone extends Command {
 
   boolean checkABZone() {
     plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
-        + (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
+        + (FieldConstants.blueReefABEdgeFromFieldOrigin - robotX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
     minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
-        - (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
+        - (FieldConstants.blueReefABEdgeFromFieldOrigin - robotX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
-    boolean borderX = robotX > FieldConstants.redReefABEdgeFromCenterFieldX;
+    boolean borderX = robotX < FieldConstants.blueReefABEdgeFromFieldOrigin;
 
     return borderX
         && (robotY < plusYBorder &&
@@ -150,19 +154,19 @@ public class DriveToNearestRedReefZone extends Command {
   }
 
   boolean checkCDZone() {
-    return robotX > FieldConstants.redReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
-  }
-
-  boolean checkIJZone() {
-    return robotX < FieldConstants.redReefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
-  }
-
-  boolean checkKLZone() {
-    return robotX > FieldConstants.redReefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
+    return robotX < FieldConstants.blueReefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
   }
 
   boolean checkEFZone() {
-    return robotX < FieldConstants.redReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
+    return robotX > FieldConstants.blueReefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
+  }
+
+  boolean checkIJZone() {
+    return robotX < FieldConstants.blueReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
+  }
+
+  boolean checkKLZone() {
+    return robotX > FieldConstants.blueReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
   }
 
   // Called once the command ends or is interrupted.

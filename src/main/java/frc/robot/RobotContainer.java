@@ -20,11 +20,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.FieldConstants.Side;
 import frc.robot.Old.TransferIntakeToSensor;
+import frc.robot.commands.swervedrive.auto.DriveToAlgaeProcessor;
 import frc.robot.commands.swervedrive.auto.DriveToNearestBlueReefZone;
 import frc.robot.commands.swervedrive.auto.DriveToNearestCoralStation;
 import frc.robot.commands.swervedrive.auto.DriveToNearestRedReefZone;
@@ -231,27 +233,32 @@ public class RobotContainer implements Logged {
                         driverXbox.y().whileTrue(Commands.none());
                         driverXbox.start().onTrue(drivebase.centerModulesCommand());
                         driverXbox.back().whileTrue(Commands.none());
-                        driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
+
+                        // driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock,
+                        // drivebase).repeatedly());
                         driverXbox.rightBumper().onTrue(
                                         Commands.runOnce(() -> drivebase.resetOdometry(
                                                         new Pose2d(7.372, 6.692, new Rotation2d(Math.PI)))));
 
-                        driverXbox.povLeft().onTrue(
+                        driverXbox.leftTrigger().whileTrue(
                                         new ConditionalCommand(
                                                         new DriveToNearestRedReefZone(drivebase, Side.LEFT),
                                                         new DriveToNearestBlueReefZone(drivebase, Side.LEFT),
-                                                        () -> isRedAlliance()));
+                                                        () -> isRedAlliance())
+                                                        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-                        driverXbox.povRight().onTrue(
+                        driverXbox.rightTrigger().onTrue(
                                         new ConditionalCommand(
                                                         new DriveToNearestRedReefZone(drivebase, Side.RIGHT),
                                                         new DriveToNearestBlueReefZone(drivebase, Side.RIGHT),
                                                         () -> isRedAlliance()));
 
-                        driverXbox.povUp().onTrue(
+                        driverXbox.leftBumper().onTrue(
                                         new DriveToNearestCoralStation(drivebase));
 
-                        driverXbox.povDown().onTrue(
+                        driverXbox.povDown().onTrue(new DriveToAlgaeProcessor(drivebase));
+
+                        driverXbox.povUp().onTrue(
                                         new ConditionalCommand(
                                                         new DriveToNearestRedReefZone(drivebase, Side.CENTER),
                                                         new DriveToNearestBlueReefZone(drivebase, Side.CENTER),

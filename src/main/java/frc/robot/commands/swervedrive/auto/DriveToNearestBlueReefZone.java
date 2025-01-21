@@ -106,8 +106,9 @@ public class DriveToNearestBlueReefZone extends Command {
       m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
       m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
 
-      // m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
+       m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
 
+  
     }
   }
 
