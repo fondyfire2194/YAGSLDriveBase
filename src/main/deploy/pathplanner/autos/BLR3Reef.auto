@@ -31,7 +31,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CoStToA"
+            "pathName": "CoStToD"
           }
         },
         {
@@ -43,7 +43,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "AToCoSt"
+            "pathName": "DToCoSt"
           }
         },
         {
@@ -55,13 +55,31 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CoStToB"
+            "pathName": "CoStToC"
           }
         },
         {
           "type": "wait",
           "data": {
             "waitTime": 2.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CToCoSt"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CoStToF"
           }
         }
       ]

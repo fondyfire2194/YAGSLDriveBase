@@ -92,8 +92,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   public LimelightTagsUpdate flUpdate = new LimelightTagsUpdate(CameraConstants.frontLeftCamera, this);
   public LimelightTagsUpdate frUpdate = new LimelightTagsUpdate(CameraConstants.frontRightCamera, this);
 
-  @Log
-  public int reefZone = 0;
+
   public int reefZoneLast = 0;
 
   @Log
@@ -237,11 +236,6 @@ PPHolonomicDriveController pphc =           new PPHolonomicDriveController(
     flUpdate.execute();
 
     frUpdate.execute();
-
-    // SmartDashboard.putNumberArray("Pose2d", new Double[] {
-    // getPose().getMeasureX().baseUnitMagnitude(),
-    // getPose().getMeasureY().baseUnitMagnitude(),
-    // getPose().getRotation().getRadians() });
 
   }
 
@@ -665,6 +659,7 @@ PPHolonomicDriveController pphc =           new PPHolonomicDriveController(
    */
   public void zeroGyroWithAlliance() {
     if (isRedAlliance()) {
+      
       zeroGyro();
       // Set the pose 180 degrees
       resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));

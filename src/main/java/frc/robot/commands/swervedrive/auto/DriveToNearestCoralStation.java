@@ -50,16 +50,16 @@ public class DriveToNearestCoralStation extends Command {
 
     if (m_swerve.isRedAlliance() && robotX > FieldConstants.FIELD_LENGTH / 2) {
       if (robotY >= FieldConstants.FIELD_WIDTH / 2)
-        m_swerve.coralStationTag = FieldConstants.redCoralStationTags[0];
+        m_swerve.coralStationTag = 2;
       else
-        m_swerve.coralStationTag = FieldConstants.redCoralStationTags[1];
+        m_swerve.coralStationTag = 1;
     }
 
     if (m_swerve.isBlueAlliance() && robotX < FieldConstants.FIELD_LENGTH / 2) {
       if (robotY >= FieldConstants.FIELD_WIDTH / 2)
-        m_swerve.coralStationTag = FieldConstants.blueCoralStationTags[0];
+        m_swerve.coralStationTag = 13;
       else
-        m_swerve.coralStationTag = FieldConstants.blueCoralStationTags[1];
+        m_swerve.coralStationTag = 12;
     }
 
     int tagNumber = m_swerve.coralStationTag;

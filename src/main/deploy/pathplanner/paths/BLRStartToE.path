@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 5.226,
-        "y": 2.669749999999999
+        "x": 5.11875,
+        "y": 2.465
       },
       "prevControl": {
-        "x": 5.78175,
-        "y": 2.0067499999999994
+        "x": 5.6745,
+        "y": 1.802
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 119.05460409907711
+    "rotation": 119.83110512878658
   },
   "reversed": false,
   "folder": "BLAutoR",

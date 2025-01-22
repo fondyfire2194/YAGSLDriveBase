@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -27,9 +26,8 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.FieldConstants.Side;
 import frc.robot.Old.TransferIntakeToSensor;
 import frc.robot.commands.swervedrive.auto.DriveToAlgaeProcessor;
-import frc.robot.commands.swervedrive.auto.DriveToNearestBlueReefZone;
 import frc.robot.commands.swervedrive.auto.DriveToNearestCoralStation;
-import frc.robot.commands.swervedrive.auto.DriveToNearestRedReefZone;
+import frc.robot.commands.swervedrive.auto.DriveToNearestReefZone;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -68,7 +66,7 @@ public class RobotContainer implements Logged {
         final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                         "swerve"));
 
-        Trigger reefZoneChange = new Trigger(() -> drivebase.reefZone != drivebase.reefZoneLast);
+        Trigger reefZoneChange = new Trigger(() -> drivebase.reefZoneTag != drivebase.reefZoneLast);
 
         // Applies deadbands and inverts controls because joysticks
         // are back-right positive while robot
@@ -165,10 +163,7 @@ public class RobotContainer implements Logged {
 
                 DriverStation.silenceJoystickConnectionWarning(true);
                 autoChooser = AutoBuilder.buildAutoChooser();
-                autoChooser.setDefaultOption("One Path", drivebase.getAutonomousCommand("One Path"));
-                autoChooser.addOption("Two Path", drivebase.getAutonomousCommand("Two Path"));
-                autoChooser.addOption("Three Path", drivebase.getAutonomousCommand("Three Path"));
-
+              
                 SmartDashboard.putData("PPAutoChooser", autoChooser);
 
                 NamedCommands.registerCommand("test", Commands.print("I EXIST"));
@@ -241,28 +236,23 @@ public class RobotContainer implements Logged {
                                                         new Pose2d(7.372, 6.692, new Rotation2d(Math.PI)))));
 
                         driverXbox.leftTrigger().whileTrue(
-                                        new ConditionalCommand(
-                                                        new DriveToNearestRedReefZone(drivebase, Side.LEFT),
-                                                        new DriveToNearestBlueReefZone(drivebase, Side.LEFT),
-                                                        () -> isRedAlliance())
+                                        new DriveToNearestReefZone(drivebase,Side.LEFT)
                                                         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-                        driverXbox.rightTrigger().onTrue(
-                                        new ConditionalCommand(
-                                                        new DriveToNearestRedReefZone(drivebase, Side.RIGHT),
-                                                        new DriveToNearestBlueReefZone(drivebase, Side.RIGHT),
-                                                        () -> isRedAlliance()));
+                        driverXbox.rightTrigger().whileTrue(
+                                new DriveToNearestReefZone(drivebase,Side.RIGHT)
+                                .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-                        driverXbox.leftBumper().onTrue(
+
+                        driverXbox.leftBumper().whileTrue(
                                         new DriveToNearestCoralStation(drivebase));
 
                         driverXbox.povDown().onTrue(new DriveToAlgaeProcessor(drivebase));
 
                         driverXbox.povUp().onTrue(
-                                        new ConditionalCommand(
-                                                        new DriveToNearestRedReefZone(drivebase, Side.CENTER),
-                                                        new DriveToNearestBlueReefZone(drivebase, Side.CENTER),
-                                                        () -> isRedAlliance()));
+                                new DriveToNearestReefZone(drivebase,Side.CENTER)
+                                .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+
 
                 }
 
@@ -275,7 +265,7 @@ public class RobotContainer implements Logged {
          */
         public Command getAutonomousCommand() {
                 // An example command will be run in autonomous
-                Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(1, 4, new Rotation2d())));
+              //  Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(1, 4, new Rotation2d())));
                 return autoChooser.getSelected();
         }
 

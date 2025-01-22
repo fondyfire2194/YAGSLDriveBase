@@ -49,45 +49,43 @@ public class FindCurrentReefZoneRed extends Command {
   @Override
   public void execute() {
     zoneFound = false;
-    m_swerve.reefZone = 0;
+    m_swerve.reefZoneTag = 0;
     robotPose = m_swerve.getPose();
     robotX = robotPose.getX();
     robotY = robotPose.getY();
     robotHeading = robotPose.getRotation().getDegrees();
 
     if (checkGHZone()) {
-      m_swerve.reefZone = 1;
+      m_swerve.reefZoneTag = 10;
       zoneFound = true;
     }
 
     if (!zoneFound && checkABZone()) {
-      m_swerve.reefZone = 4;
+      m_swerve.reefZoneTag = 7;
       zoneFound = true;
     }
-
-    if (!zoneFound && checkIJZone()) {
-      m_swerve.reefZone = 2;
-      zoneFound = true;
-    }
-
-    if (!zoneFound && checkKLZone()) {
-      m_swerve.reefZone = 3;
-      zoneFound = true;
-    }
-
-    if (!zoneFound && checkCDZone()) {
-      m_swerve.reefZone = 5;
+ if (!zoneFound && checkCDZone()) {
+      m_swerve.reefZoneTag = 8;
       zoneFound = true;
     }
 
     if (!zoneFound && checkEFZone()) {
-      m_swerve.reefZone = 6;
+      m_swerve.reefZoneTag = 9;
+      zoneFound = true;
+    }
+    if (!zoneFound && checkIJZone()) {
+      m_swerve.reefZoneTag = 11;
       zoneFound = true;
     }
 
-    m_swerve.reefZoneTag = FieldConstants.redReefTags[m_swerve.reefZone];
+    if (!zoneFound && checkKLZone()) {
+      m_swerve.reefZoneTag = 6;
+      zoneFound = true;
+    }
 
-    int tagNumber = FieldConstants.redReefTags[m_swerve.reefZone];
+   
+
+    int tagNumber = m_swerve.reefZoneTag;
 
     m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
 
@@ -131,6 +129,10 @@ public class FindCurrentReefZoneRed extends Command {
     return robotX > FieldConstants.redReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
   }
 
+ boolean checkEFZone() {
+    return robotX < FieldConstants.redReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
+  }
+
   boolean checkIJZone() {
     return robotX < FieldConstants.redReefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
   }
@@ -139,9 +141,7 @@ public class FindCurrentReefZoneRed extends Command {
     return robotX > FieldConstants.redReefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
   }
 
-  boolean checkEFZone() {
-    return robotX < FieldConstants.redReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
-  }
+ 
 
   // Called once the command ends or is interrupted.
   @Override

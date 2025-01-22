@@ -69,12 +69,7 @@ public final class Constants {
     public static final double reefOffset = Units.inchesToMeters(6.5);
     public static final double centerToReefBranch = Units.inchesToMeters(13);
 
-    public static int[] blueReefTags = { 0, 21, 22, 17, 18, 19, 20 };
-    public static int[] blueCoralStationTags = { 13, 12 };
-    public static int blueProcessorTag = 16;
-    public static int[] redReefTags = { 0, 10, 11, 6, 7, 8, 9 };
-    public static int[] redCoralStationTags = { 2, 1 };
-    public static int redProcessorTag = 3;
+   
 
     public static enum Side {
       LEFT,
