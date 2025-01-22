@@ -93,7 +93,7 @@ public class SwerveSubsystem extends SubsystemBase implements Logged {
   public LimelightTagsUpdate frUpdate = new LimelightTagsUpdate(CameraConstants.frontRightCamera, this);
 
 
-  public int reefZoneLast = 0;
+  public int reefZoneLastTag = 0;
 
   @Log
   public int reefZoneTag = 0;

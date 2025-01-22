@@ -19,15 +19,16 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.FieldConstants.Side;
 import frc.robot.Old.TransferIntakeToSensor;
-import frc.robot.commands.swervedrive.auto.DriveToAlgaeProcessor;
-import frc.robot.commands.swervedrive.auto.DriveToNearestCoralStation;
-import frc.robot.commands.swervedrive.auto.DriveToNearestReefZone;
+import frc.robot.commands.auto.DriveToAlgaeProcessor;
+import frc.robot.commands.auto.DriveToNearestCoralStation;
+import frc.robot.commands.auto.DriveToNearestReefZone;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -66,7 +67,7 @@ public class RobotContainer implements Logged {
         final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                         "swerve"));
 
-        Trigger reefZoneChange = new Trigger(() -> drivebase.reefZoneTag != drivebase.reefZoneLast);
+        Trigger reefZoneChange = new Trigger(() -> drivebase.reefZoneTag != drivebase.reefZoneLastTag);
 
         // Applies deadbands and inverts controls because joysticks
         // are back-right positive while robot
@@ -157,13 +158,12 @@ public class RobotContainer implements Logged {
         public RobotContainer() {
                 // Configure the trigger bindings
                 configureBindings();
-                // reefZoneChange.onTrue(rumble(driverXbox, RumbleType.kLeftRumble, 1))
-                // .onTrue(new InstantCommand(() -> drivebase.reefZoneLast =
-                // drivebase.reefZone));
+                reefZoneChange.onTrue(rumble(driverXbox, RumbleType.kLeftRumble, .25))
+                                .onTrue(new InstantCommand(() -> drivebase.reefZoneLastTag = drivebase.reefZoneTag));
 
                 DriverStation.silenceJoystickConnectionWarning(true);
                 autoChooser = AutoBuilder.buildAutoChooser();
-              
+
                 SmartDashboard.putData("PPAutoChooser", autoChooser);
 
                 NamedCommands.registerCommand("test", Commands.print("I EXIST"));
@@ -236,13 +236,12 @@ public class RobotContainer implements Logged {
                                                         new Pose2d(7.372, 6.692, new Rotation2d(Math.PI)))));
 
                         driverXbox.leftTrigger().whileTrue(
-                                        new DriveToNearestReefZone(drivebase,Side.LEFT)
+                                        new DriveToNearestReefZone(drivebase, Side.LEFT)
                                                         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
                         driverXbox.rightTrigger().whileTrue(
-                                new DriveToNearestReefZone(drivebase,Side.RIGHT)
-                                .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
-
+                                        new DriveToNearestReefZone(drivebase, Side.RIGHT)
+                                                        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
                         driverXbox.leftBumper().whileTrue(
                                         new DriveToNearestCoralStation(drivebase));
@@ -250,9 +249,8 @@ public class RobotContainer implements Logged {
                         driverXbox.povDown().onTrue(new DriveToAlgaeProcessor(drivebase));
 
                         driverXbox.povUp().onTrue(
-                                new DriveToNearestReefZone(drivebase,Side.CENTER)
-                                .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
-
+                                        new DriveToNearestReefZone(drivebase, Side.CENTER)
+                                                        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
                 }
 
@@ -265,7 +263,8 @@ public class RobotContainer implements Logged {
          */
         public Command getAutonomousCommand() {
                 // An example command will be run in autonomous
-              //  Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(1, 4, new Rotation2d())));
+                // Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(1, 4, new
+                // Rotation2d())));
                 return autoChooser.getSelected();
         }
 
@@ -291,12 +290,12 @@ public class RobotContainer implements Logged {
                                 Commands.race(
                                                 Commands.either(
                                                                 Commands.run(() -> controller.getHID().setRumble(type,
-                                                                                1.0)),
+                                                                                timeout)),
                                                                 Commands.runOnce(() -> SmartDashboard.putString("BUZZ",
                                                                                 "BUZZ")),
                                                                 () -> RobotBase.isReal()),
                                                 Commands.waitSeconds(timeout)),
-                                Commands.runOnce(() -> controller.getHID().setRumble(RumbleType.kBothRumble, 0.0)));
+                                Commands.runOnce(() -> controller.getHID().setRumble(type, 0.0)));
 
         }
 }

@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands.swervedrive.auto;
+package frc.robot.commands.auto;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,25 +12,23 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.FieldConstants.Side;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class DriveToNearestReefZone extends Command {
+public class DriveToAlgaeProcessor extends Command {
   /** Creates a new FindRobotReefZone. */
   SwerveSubsystem m_swerve;
-  
+  Pose2d robotPose;
+  double robotX;
+  double robotY;
+  double robotHeading;
 
   boolean exit;
   int tst;
-  Side m_side;
- 
-  Translation2d tl2d;
 
-  public DriveToNearestReefZone(SwerveSubsystem swerve, Side side) {
+  public DriveToAlgaeProcessor(SwerveSubsystem swerve) {
     m_swerve = swerve;
-    m_side = side;
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -39,38 +37,41 @@ public class DriveToNearestReefZone extends Command {
   public void initialize() {
 
     exit = false;
-
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    
+    SmartDashboard.putNumber("TEST", tst++);
+    exit = false;
 
-    if (m_swerve.reefZoneTag != 0) {
+    robotX = m_swerve.getPose().getX();
+    robotY = m_swerve.getPose().getY();
 
-    
-      double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
-
-      if (m_side == Side.CENTER)
-        tl2d = new Translation2d(baseOffset, 0);
-      if (m_side == Side.RIGHT)
-        tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
-      if (m_side == Side.LEFT)
-        tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
-
-      Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
-
-      m_swerve.reefFinalTargetPose = m_swerve.reefTargetPose.transformBy(tr2d);
-
-      m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
-
-  
+    if (m_swerve.isRedAlliance() && robotX > FieldConstants.FIELD_LENGTH / 2) {
+      m_swerve.processorStationTag = 3;
     }
 
-  }
+    if (m_swerve.isBlueAlliance() && robotX < FieldConstants.FIELD_LENGTH / 2) {
+      m_swerve.processorStationTag = 16;
+    }
 
- 
+    int tagNumber = m_swerve.processorStationTag;
+
+    m_swerve.processorStationTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
+
+    double baseOffset = RobotConstants.algaeOffset + RobotConstants.ROBOT_LENGTH / 2;
+
+    Translation2d tl2d = new Translation2d(baseOffset, 0);
+
+    Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
+
+    m_swerve.processorStationFinalTargetPose = m_swerve.coralStationTargetPose.transformBy(tr2d);
+
+    m_swerve.driveToPose(m_swerve.processorStationFinalTargetPose).schedule();
+
+    exit = true;
+  }
 
   // Called once the command ends or is interrupted.
   @Override
@@ -81,6 +82,6 @@ public class DriveToNearestReefZone extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return true;
+    return exit;
   }
 }
