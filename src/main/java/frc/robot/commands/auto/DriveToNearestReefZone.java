@@ -35,7 +35,7 @@ public class DriveToNearestReefZone extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-
+    tst = 0;
     exit = false;
 
   }
@@ -44,25 +44,29 @@ public class DriveToNearestReefZone extends Command {
   @Override
   public void execute() {
     Pose2d targetPose = new Pose2d();
-    while (m_swerve.lockPoseChange && tst < 5) {
+
+    if (!m_swerve.lockPoseChange) {
+
+      targetPose = m_swerve.reefTargetPose;
+
+      double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
+
+      if (m_side == Side.CENTER)
+        tl2d = new Translation2d(baseOffset, 0);
+      if (m_side == Side.RIGHT)
+        tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
+      if (m_side == Side.LEFT)
+        tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
+
+      Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
+
+      m_swerve.reefFinalTargetPose = targetPose.transformBy(tr2d);
+
+      m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
+
+      exit = true;
+    } else
       tst++;
-    }
-    targetPose = m_swerve.reefTargetPose;
-    double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
-
-    if (m_side == Side.CENTER)
-      tl2d = new Translation2d(baseOffset, 0);
-    if (m_side == Side.RIGHT)
-      tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
-    if (m_side == Side.LEFT)
-      tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
-
-    Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
-
-    m_swerve.reefFinalTargetPose = targetPose.transformBy(tr2d);
-
-    m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
-    exit = true;
   }
 
   // Called once the command ends or is interrupted.
@@ -74,6 +78,6 @@ public class DriveToNearestReefZone extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return exit || tst > 5;
+    return exit || tst > 2;
   }
 }
