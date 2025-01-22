@@ -24,7 +24,6 @@ public class FindCurrentReefZoneRed extends Command {
 
   boolean zoneFound;
   int tst;
-  
 
   double plusYBorder;
   double minusYBorder;
@@ -64,7 +63,7 @@ public class FindCurrentReefZoneRed extends Command {
       m_swerve.reefZoneTag = 7;
       zoneFound = true;
     }
- if (!zoneFound && checkCDZone()) {
+    if (!zoneFound && checkCDZone()) {
       m_swerve.reefZoneTag = 8;
       zoneFound = true;
     }
@@ -83,11 +82,9 @@ public class FindCurrentReefZoneRed extends Command {
       zoneFound = true;
     }
 
-   
-
-    int tagNumber = m_swerve.reefZoneTag;
-
-    m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
+    m_swerve.lockPoseChange = true;
+    m_swerve.reefTargetPose = m_swerve.getTagPose(m_swerve.reefZoneTag).toPose2d();
+    m_swerve.lockPoseChange = false;
 
     m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
     m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
@@ -95,10 +92,10 @@ public class FindCurrentReefZoneRed extends Command {
   }
 
   boolean checkGHZone() {
-    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth /FieldConstants.reefSideWidthDiv
+    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         + (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
-    minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth /FieldConstants.reefSideWidthDiv
+    minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         - (FieldConstants.redReefGHEdgeFromCenterFieldX - robotX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
@@ -111,10 +108,10 @@ public class FindCurrentReefZoneRed extends Command {
   }
 
   boolean checkABZone() {
-    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth /FieldConstants.reefSideWidthDiv
+    plusYBorder = FieldConstants.FIELD_WIDTH / 2 + FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         + (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
-    minusYBorder = FieldConstants.FIELD_WIDTH / 2 -FieldConstants.reefSideWidth /FieldConstants.reefSideWidthDiv
+    minusYBorder = FieldConstants.FIELD_WIDTH / 2 - FieldConstants.reefSideWidth / FieldConstants.reefSideWidthDiv
         - (robotX - FieldConstants.redReefABEdgeFromCenterFieldX) *
             Math.tan(Units.degreesToRadians(m_swerve.yZoneLimitAngle));
 
@@ -129,7 +126,7 @@ public class FindCurrentReefZoneRed extends Command {
     return robotX > FieldConstants.redReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
   }
 
- boolean checkEFZone() {
+  boolean checkEFZone() {
     return robotX < FieldConstants.redReefMidFromCenterFieldX && robotY > FieldConstants.FIELD_WIDTH / 2;
   }
 
@@ -140,8 +137,6 @@ public class FindCurrentReefZoneRed extends Command {
   boolean checkKLZone() {
     return robotX > FieldConstants.redReefMidFromCenterFieldX && robotY < FieldConstants.FIELD_WIDTH / 2;
   }
-
- 
 
   // Called once the command ends or is interrupted.
   @Override

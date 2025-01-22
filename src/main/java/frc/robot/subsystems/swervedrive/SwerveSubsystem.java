@@ -129,6 +129,7 @@ PPHolonomicDriveController pphc =           new PPHolonomicDriveController(
   new PIDConstants(5.0, 0.0, 0.0),
   // Translation PID constants
   new PIDConstants(5.0, 0.0, 0.0));
+public boolean lockPoseChange;
 
 
   /**

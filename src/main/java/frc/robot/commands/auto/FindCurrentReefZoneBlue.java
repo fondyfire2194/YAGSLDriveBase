@@ -78,13 +78,12 @@ public class FindCurrentReefZoneBlue extends Command {
       zoneFound = true;
     }
 
-    int tagNumber = m_swerve.reefZoneTag;
-
     m_swerve.plusBorderPose = new Pose2d(robotX, plusYBorder, new Rotation2d());
     m_swerve.minusBorderPose = new Pose2d(robotX, minusYBorder, new Rotation2d());
-
-    m_swerve.reefTargetPose = m_swerve.getTagPose(tagNumber).toPose2d();
-
+    
+    m_swerve.lockPoseChange = true;
+    m_swerve.reefTargetPose = m_swerve.getTagPose(m_swerve.reefZoneTag).toPose2d();
+    m_swerve.lockPoseChange = false;
   }
 
   boolean checkABZone() {

@@ -4,6 +4,7 @@
 
 package frc.robot.commands.auto;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -18,12 +19,11 @@ import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 public class DriveToNearestReefZone extends Command {
   /** Creates a new FindRobotReefZone. */
   SwerveSubsystem m_swerve;
-  
 
   boolean exit;
   int tst;
   Side m_side;
- 
+
   Translation2d tl2d;
 
   public DriveToNearestReefZone(SwerveSubsystem swerve, Side side) {
@@ -43,32 +43,27 @@ public class DriveToNearestReefZone extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    
-
-    if (m_swerve.reefZoneTag != 0) {
-
-    
-      double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
-
-      if (m_side == Side.CENTER)
-        tl2d = new Translation2d(baseOffset, 0);
-      if (m_side == Side.RIGHT)
-        tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
-      if (m_side == Side.LEFT)
-        tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
-
-      Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
-
-      m_swerve.reefFinalTargetPose = m_swerve.reefTargetPose.transformBy(tr2d);
-
-      m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
-
-  
+    Pose2d targetPose = new Pose2d();
+    while (m_swerve.lockPoseChange && tst < 5) {
+      tst++;
     }
+    targetPose = m_swerve.reefTargetPose;
+    double baseOffset = RobotConstants.placementOffset + RobotConstants.ROBOT_LENGTH / 2;
 
+    if (m_side == Side.CENTER)
+      tl2d = new Translation2d(baseOffset, 0);
+    if (m_side == Side.RIGHT)
+      tl2d = new Translation2d(baseOffset, FieldConstants.reefOffset);
+    if (m_side == Side.LEFT)
+      tl2d = new Translation2d(baseOffset, -FieldConstants.reefOffset);
+
+    Transform2d tr2d = new Transform2d(tl2d, new Rotation2d(Units.degreesToRadians(180)));
+
+    m_swerve.reefFinalTargetPose = targetPose.transformBy(tr2d);
+
+    m_swerve.driveToPose(m_swerve.reefFinalTargetPose).schedule();
+    exit = true;
   }
-
- 
 
   // Called once the command ends or is interrupted.
   @Override
@@ -79,6 +74,6 @@ public class DriveToNearestReefZone extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return true;
+    return exit || tst > 5;
   }
 }
