@@ -20,11 +20,16 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.FieldConstants.Side;
+import frc.robot.Old.JogArm;
+import frc.robot.Old.PositionHoldArm;
 import frc.robot.Old.TransferIntakeToSensor;
 import frc.robot.commands.auto.DriveToAlgaeProcessor;
 import frc.robot.commands.auto.DriveToNearestCoralStation;
@@ -192,6 +197,8 @@ public class RobotContainer implements Logged {
                                 () -> -driverXbox.getLeftX(),
                                 () -> -driverXbox.getRightX()));
 
+                arm.setDefaultCommand(new PositionHoldArm(arm));
+
                 if (Robot.isSimulation()) {
                         driverXbox.start()
                                         .onTrue(Commands.runOnce(() -> drivebase
@@ -201,17 +208,32 @@ public class RobotContainer implements Logged {
                         // drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides
                         // drive command above!
 
-                        driverXbox.b().onTrue(intake.startIntakeCommand());
+                        driverXbox.y().onTrue(
+                                new SequentialCommandGroup(
+                                arm.setGoalCommand(Radians.of(Units.degreesToRadians(25))),
+                                intake.startIntakeCommand(),
+                                new TransferIntakeToSensor(transfer, intake, drivebase, 10),
+                                arm.setGoalCommand(Radians.of(Units.degreesToRadians(0)))));
                         driverXbox.x().onTrue(intake.stopIntakeCommand());
-                        driverXbox.y().onTrue(new TransferIntakeToSensor(transfer, intake, drivebase, 10));
+                       // driverXbox.y().onTrue(new TransferIntakeToSensor(transfer, intake, drivebase, 10));
 
                         driverXbox.start().onTrue(shooter.startShooterCommand(RPM.of(1500)));
 
-                        driverXbox.back().onTrue(shooter.stopShooterCommand());
+                        driverXbox.a().onTrue(new SequentialCommandGroup(
+                                shooter.startShooterCommand(RPM.of(1000)),
+                                new WaitCommand(0.5),
+                                transfer.transferToShooterCommand(),
+                                new WaitCommand(1),
+                                shooter.stopShooterCommand()));
+
+                        driverXbox.back().onTrue(new ParallelCommandGroup(
+                                shooter.stopShooterCommand(),
+                                transfer.stopTransferCommand(),
+                                intake.stopIntakeCommand()));//shooter.stopShooterCommand());
 
                         driverXbox.leftBumper().onTrue(transfer.transferToShooterCommand());
 
-                        driverXbox.rightBumper().onTrue(Commands.none());
+                        driverXbox.rightBumper().whileTrue(new JogArm(arm, driverXbox));
 
                         driverXbox.povUp().onTrue(arm.setGoalCommand(Radians.of(Units.degreesToRadians(50))));
                         driverXbox.povLeft().onTrue(arm.setGoalCommand(Radians.of(Units.degreesToRadians(30))));

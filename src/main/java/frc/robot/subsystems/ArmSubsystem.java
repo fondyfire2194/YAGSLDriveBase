@@ -1,20 +1,13 @@
 package frc.robot.subsystems;
 
 
+import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-
-import static edu.wpi.first.units.Units.Degree;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
-import static edu.wpi.first.units.Units.RevolutionsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
 
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
@@ -45,13 +38,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
 
 import frc.robot.utils.SD;
+import monologue.Annotations.Log;
+import monologue.Logged;
 
-public class ArmSubsystem extends SubsystemBase {
+public class ArmSubsystem extends SubsystemBase implements Logged{
 
     public final SparkMax armMotor = new SparkMax(20, MotorType.kBrushless);
 
@@ -84,8 +76,8 @@ public class ArmSubsystem extends SubsystemBase {
     private AngularVelocity maxVel = DegreesPerSecond.of(10);
     private AngularAcceleration maxAccel = DegreesPerSecondPerSecond.of(15);
     public  final Angle armAngleOnBottomStopBar = Radians.of(Units.degreesToRadians(20));//
-    public  Angle armMin = armAngleOnBottomStopBar;
-    public  Angle armMax = Degree.of(80);
+    public  Angle armMin = Degrees.of(21);
+    public  Angle armMax = Degree.of(60);
 
     public Angle maxAngle = armMax;
     public Angle minAngle = armMin;
@@ -103,22 +95,30 @@ public class ArmSubsystem extends SubsystemBase {
     public final double armKi = 0.5;
     public final double armKd = 0.0;
 
+    public  final double NET_GEAR_RATIO = 200;// 100:1 then 2:1
+
+    public  final double DEGREES_PER_ENCODER_REV = 360 / NET_GEAR_RATIO;// 1.8
+
+    public  final double RADIANS_PER_ENCODER_REV = Units.degreesToRadians(DEGREES_PER_ENCODER_REV);// .0314
+
+    public  final double armConversionPositionFactor = RADIANS_PER_ENCODER_REV;
+
+    public  final double armConversionVelocityFactor = armConversionPositionFactor / 60; //
+
+
     private AngularVelocity maxrevpermin = RPM.of(5700);
     private AngularVelocity currentVelAV = RadiansPerSecond.of(0);
 
     Angle degperencderrev = Degrees.of(1);
 
-    double posConvFactor = degperencderrev.in(Radians);
 
-    double velConvFactor = posConvFactor / 60;
-
-    double maxRadPerSec = posConvFactor * maxrevpermin.in(RevolutionsPerSecond);//
+    //double maxRadPerSec = posConvFactor * maxrevpermin.in(RevolutionsPerSecond);//
 
     double ks = armKs;
-    double kv = 12 / maxRadPerSec;// 8
+    double kv = armKv;
     double kg =armKg;
     double ka = armKa;
-    double lastkv = kv;
+  //  double lastkv = kv;
     boolean tuning = false;
 
     private int inPositionCtr;
@@ -143,12 +143,12 @@ public class ArmSubsystem extends SubsystemBase {
         armConfig = new SparkMaxConfig();
 
         armConfig
-                .inverted(true)
+                .inverted(false)
                 .idleMode(IdleMode.kBrake);
 
         armConfig.encoder
-                .positionConversionFactor(posConvFactor)
-                .velocityConversionFactor(velConvFactor);
+                .positionConversionFactor(armConversionPositionFactor)
+                .velocityConversionFactor(armConversionVelocityFactor);
 
         armConfig.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -189,9 +189,9 @@ public class ArmSubsystem extends SubsystemBase {
         SmartDashboard.putData(armController);
         SmartDashboard.putNumber("ARMFFKv", kv);
         SmartDashboard.putBoolean("Tuning", tuning);
-        SmartDashboard.putNumber("POSCONV", posConvFactor);
+        SmartDashboard.putNumber("POSCONV", armConversionPositionFactor);
         SmartDashboard.putNumber("FFREADKV", armfeedforward.getKv());
-        SmartDashboard.putNumber("LASTKV", lastkv);
+     //   SmartDashboard.putNumber("LASTKV", lastkv);
 
         // resetEncoder(minAngle.in(Radians));
     }
@@ -228,7 +228,7 @@ public class ArmSubsystem extends SubsystemBase {
         armController.setGoal(angle.in(Radians));
         inPositionCtr = 0;
     }
-
+@Log
     public boolean atGoal() {
         return armController.atGoal() && inPositionCtr == 3;
     }
@@ -308,7 +308,7 @@ public class ArmSubsystem extends SubsystemBase {
     public double getMotorEncoderAngleRadians() {
         return armMotor.getEncoder().getPosition();
     }
-
+    @Log
     public double getMotorDegrees() {
         return Units.radiansToDegrees(armMotor.getEncoder().getPosition());
     }
@@ -316,19 +316,19 @@ public class ArmSubsystem extends SubsystemBase {
     public double getMotorEncoderRadsPerSec() {
         return armMotor.getEncoder().getVelocity();
     }
-
+    @Log
     public double getMotorEncoderDegsPerSec() {
         return Units.radiansToDegrees(armMotor.getEncoder().getVelocity());
     }
-
+    @Log
     public Angle getCurrentGoal() {
         return Radians.of(armController.getGoal().position);
     }
-
+    @Log
     public Angle getCurrentGoalDeg() {
         return getCurrentGoal();
     }
-
+    @Log
     public Angle getAngle() {
         double rawAngle = armMotor.getEncoder().getPosition();
         double offsetAngle = rawAngle;
@@ -336,16 +336,16 @@ public class ArmSubsystem extends SubsystemBase {
                                                    // terms // // of radians
         return m_angle;
     }
-
+    @Log
     public Angle getAngleError() {
         Angle diff = getCurrentGoal().minus(getAngle());
         return Radians.of(diff.in(Radians));
     }
-
+    @Log
     public boolean getAtSetpoint() {
         return Math.abs(getAngleError().in(Radians)) <= (angleToleranceRads.in(Radians));
     }
-
+    @Log
     public double getVoltsPerRadPerSec() {
         appliedVolts = armMotor.getAppliedOutput() * RobotController.getBatteryVoltage();
         double temp = appliedVolts / getRadsPerSec();
@@ -413,29 +413,6 @@ public class ArmSubsystem extends SubsystemBase {
         return Commands.runOnce(() -> armMotorConnected = false);
     }
 
-    private SysIdRoutine sysIdRoutine = new SysIdRoutine(
-            new SysIdRoutine.Config(),
-            new SysIdRoutine.Mechanism(
-                    (volts) -> {
-                        armMotor.setVoltage(volts.in(Volts));
-                    },
-                    null,
-                    this));
 
-    public Command quasistaticForward() {
-        return sysIdRoutine.quasistatic(Direction.kForward);
-    }
-
-    public Command quasistaticBackward() {
-        return sysIdRoutine.quasistatic(Direction.kReverse);
-    }
-
-    public Command dynamicForward() {
-        return sysIdRoutine.dynamic(Direction.kForward);
-    }
-
-    public Command dynamicBackward() {
-        return sysIdRoutine.dynamic(Direction.kReverse);
-    }
 
 }
