@@ -81,7 +81,7 @@ public class TransferIntakeToSensor extends Command {
   @Override
   public void end(boolean interrupted) {
     m_transfer.stopMotor();
-    if (DriverStation.isTestEnabled()) {
+    if (DriverStation.isTestEnabled()||DriverStation.isAutonomousEnabled()) {
       m_intake.stopMotor();
 
     }

@@ -43,6 +43,7 @@ import frc.robot.subsystems.TransferSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import monologue.Logged;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 
@@ -161,6 +162,15 @@ public class RobotContainer implements Logged {
          * The container for the robot. Contains subsystems, OI devices, and commands.
          */
         public RobotContainer() {
+
+                NamedCommands.registerCommand("RaiseArm", arm.setGoalCommand(Degrees.of(45)));
+                NamedCommands.registerCommand("LowerArm", arm.setGoalCommand(Degrees.of(20)));
+                NamedCommands.registerCommand("StartShooter", shooter.startShooterCommand(RPM.of(1000)));
+                NamedCommands.registerCommand("StopShooter", shooter.stopShooterCommand());
+                NamedCommands.registerCommand("StartIntake", intake.startIntakeCommand());
+                NamedCommands.registerCommand("GetNote", getNoteCommand());
+                NamedCommands.registerCommand("ShootNote",shootNoteCommand());
+
                 // Configure the trigger bindings
                 configureBindings();
                 reefZoneChange.onTrue(rumble(driverXbox, RumbleType.kLeftRumble, .25))
@@ -171,7 +181,6 @@ public class RobotContainer implements Logged {
 
                 SmartDashboard.putData("PPAutoChooser", autoChooser);
 
-                NamedCommands.registerCommand("test", Commands.print("I EXIST"));
         }
 
         /**
@@ -208,28 +217,20 @@ public class RobotContainer implements Logged {
                         // drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides
                         // drive command above!
 
-                        driverXbox.y().onTrue(
-                                new SequentialCommandGroup(
-                                arm.setGoalCommand(Radians.of(Units.degreesToRadians(25))),
-                                intake.startIntakeCommand(),
-                                new TransferIntakeToSensor(transfer, intake, drivebase, 10),
-                                arm.setGoalCommand(Radians.of(Units.degreesToRadians(0)))));
+                        driverXbox.y().onTrue(getNoteCommand());
+                                       
                         driverXbox.x().onTrue(intake.stopIntakeCommand());
-                       // driverXbox.y().onTrue(new TransferIntakeToSensor(transfer, intake, drivebase, 10));
+                        // driverXbox.y().onTrue(new TransferIntakeToSensor(transfer, intake, drivebase,
+                        // 10));
 
                         driverXbox.start().onTrue(shooter.startShooterCommand(RPM.of(1500)));
 
-                        driverXbox.a().onTrue(new SequentialCommandGroup(
-                                shooter.startShooterCommand(RPM.of(1000)),
-                                new WaitCommand(0.5),
-                                transfer.transferToShooterCommand(),
-                                new WaitCommand(1),
-                                shooter.stopShooterCommand()));
+                        driverXbox.a().onTrue(shootNoteCommand());
 
                         driverXbox.back().onTrue(new ParallelCommandGroup(
-                                shooter.stopShooterCommand(),
-                                transfer.stopTransferCommand(),
-                                intake.stopIntakeCommand()));//shooter.stopShooterCommand());
+                                        shooter.stopShooterCommand(),
+                                        transfer.stopTransferCommand(),
+                                        intake.stopIntakeCommand()));// shooter.stopShooterCommand());
 
                         driverXbox.leftBumper().onTrue(transfer.transferToShooterCommand());
 
@@ -288,6 +289,25 @@ public class RobotContainer implements Logged {
                 // Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(1, 4, new
                 // Rotation2d())));
                 return autoChooser.getSelected();
+        }
+
+        private Command getNoteCommand(){
+                return  new SequentialCommandGroup(
+                        arm.setGoalCommand(Radians.of(Units.degreesToRadians(25))),
+                        intake.startIntakeCommand(),
+                        new TransferIntakeToSensor(transfer, intake, drivebase, 10),
+                        arm.setGoalCommand(Radians.of(Units.degreesToRadians(0))));
+        }
+
+        private Command shootNoteCommand(){
+                return new SequentialCommandGroup(
+                        arm.setGoalCommand(Radians.of(Units.degreesToRadians(60))),
+                        shooter.startShooterCommand(RPM.of(1500)),
+                        new WaitCommand(0.5),
+                        transfer.transferToShooterCommand(),
+                        new WaitCommand(0.5),
+                        shooter.stopShooterCommand(),
+                        arm.setGoalCommand(Radians.of(Units.degreesToRadians(0))));
         }
 
         public void setDriveMode() {
