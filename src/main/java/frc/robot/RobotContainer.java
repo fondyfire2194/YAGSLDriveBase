@@ -30,12 +30,15 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.FieldConstants.Side;
 import frc.robot.Old.JogArm;
 import frc.robot.Old.PositionHoldArm;
+import frc.robot.Old.PositionHoldArmX;
 import frc.robot.Old.TransferIntakeToSensor;
 import frc.robot.commands.auto.DriveToAlgaeProcessor;
 import frc.robot.commands.auto.DriveToNearestCoralStation;
 import frc.robot.commands.auto.DriveToNearestReefZone;
+import frc.robot.commands.shooter.DetectNoteIntakeToShooter;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.ArmSubsystemMAX;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LimelightVision;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -65,9 +68,10 @@ public class RobotContainer implements Logged {
         IntakeSubsystem intake = new IntakeSubsystem();
         TransferSubsystem transfer = new TransferSubsystem();
         ShooterSubsystem shooter = new ShooterSubsystem();
-        ArmSubsystem arm = new ArmSubsystem();
+        ArmSubsystemMAX arm = new ArmSubsystemMAX();
         // Replace with CommandPS4Controller or CommandJoystick if needed
         final CommandXboxController driverXbox = new CommandXboxController(0);
+        final CommandXboxController codriverXbox = new CommandXboxController(1);
 
         // The robot's subsystems and commands are defined here...
         final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
@@ -169,7 +173,7 @@ public class RobotContainer implements Logged {
                 NamedCommands.registerCommand("StopShooter", shooter.stopShooterCommand());
                 NamedCommands.registerCommand("StartIntake", intake.startIntakeCommand());
                 NamedCommands.registerCommand("GetNote", getNoteCommand());
-                NamedCommands.registerCommand("ShootNote",shootNoteCommand());
+                NamedCommands.registerCommand("ShootNote", shootNoteCommand());
 
                 // Configure the trigger bindings
                 configureBindings();
@@ -206,7 +210,7 @@ public class RobotContainer implements Logged {
                                 () -> -driverXbox.getLeftX(),
                                 () -> -driverXbox.getRightX()));
 
-                arm.setDefaultCommand(new PositionHoldArm(arm));
+                 arm.setDefaultCommand(new PositionHoldArmX(arm));
 
                 if (Robot.isSimulation()) {
                         driverXbox.start()
@@ -218,7 +222,7 @@ public class RobotContainer implements Logged {
                         // drive command above!
 
                         driverXbox.y().onTrue(getNoteCommand());
-                                       
+
                         driverXbox.x().onTrue(intake.stopIntakeCommand());
                         // driverXbox.y().onTrue(new TransferIntakeToSensor(transfer, intake, drivebase,
                         // 10));
@@ -234,7 +238,7 @@ public class RobotContainer implements Logged {
 
                         driverXbox.leftBumper().onTrue(transfer.transferToShooterCommand());
 
-                        driverXbox.rightBumper().whileTrue(new JogArm(arm, driverXbox));
+                       // driverXbox.rightBumper().whileTrue(new JogArm(arm, driverXbox));
 
                         driverXbox.povUp().onTrue(arm.setGoalCommand(Radians.of(Units.degreesToRadians(50))));
                         driverXbox.povLeft().onTrue(arm.setGoalCommand(Radians.of(Units.degreesToRadians(30))));
@@ -248,7 +252,8 @@ public class RobotContainer implements Logged {
                                         drivebase.driveToPose(
                                                         new Pose2d(new Translation2d(6, 3.8),
                                                                         Rotation2d.fromDegrees(180))));
-                        driverXbox.y().whileTrue(Commands.none());
+                        // driverXbox.y().whileTrue(()->drivebase.resetOdometry(new Pose2d(0,0,new
+                        // Rotation2d().fro)));
                         driverXbox.start().onTrue(drivebase.centerModulesCommand());
                         driverXbox.back().whileTrue(Commands.none());
 
@@ -277,6 +282,11 @@ public class RobotContainer implements Logged {
 
                 }
 
+                codriverXbox.leftBumper().onTrue(shooter.startShooterCommand(RPM.of(500), RPM.of(500)));
+                codriverXbox.rightBumper().onTrue(shooter.stopShooterCommand());
+
+                codriverXbox.y().whileTrue(new DetectNoteIntakeToShooter(shooter, true, true).repeatedly());
+
         }
 
         /**
@@ -291,23 +301,23 @@ public class RobotContainer implements Logged {
                 return autoChooser.getSelected();
         }
 
-        private Command getNoteCommand(){
-                return  new SequentialCommandGroup(
-                        arm.setGoalCommand(Radians.of(Units.degreesToRadians(25))),
-                        intake.startIntakeCommand(),
-                        new TransferIntakeToSensor(transfer, intake, drivebase, 10),
-                        arm.setGoalCommand(Radians.of(Units.degreesToRadians(0))));
+        private Command getNoteCommand() {
+                return new SequentialCommandGroup(
+                                arm.setGoalCommand(Radians.of(Units.degreesToRadians(25))),
+                                intake.startIntakeCommand(),
+                                new TransferIntakeToSensor(transfer, intake, drivebase, 10),
+                                arm.setGoalCommand(Radians.of(Units.degreesToRadians(0))));
         }
 
-        private Command shootNoteCommand(){
+        private Command shootNoteCommand() {
                 return new SequentialCommandGroup(
-                        arm.setGoalCommand(Radians.of(Units.degreesToRadians(60))),
-                        shooter.startShooterCommand(RPM.of(1500)),
-                        new WaitCommand(0.5),
-                        transfer.transferToShooterCommand(),
-                        new WaitCommand(0.5),
-                        shooter.stopShooterCommand(),
-                        arm.setGoalCommand(Radians.of(Units.degreesToRadians(0))));
+                                arm.setGoalCommand(Radians.of(Units.degreesToRadians(60))),
+                                shooter.startShooterCommand(RPM.of(1500)),
+                                new WaitCommand(0.5),
+                                transfer.transferToShooterCommand(),
+                                new WaitCommand(0.5),
+                                shooter.stopShooterCommand(),
+                                arm.setGoalCommand(Radians.of(Units.degreesToRadians(0))));
         }
 
         public void setDriveMode() {

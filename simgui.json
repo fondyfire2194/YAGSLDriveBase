@@ -123,10 +123,18 @@
     }
   },
   "NetworkTables": {
-    "transitory": {
-      "FMSInfo": {
+    "Persistent Values": {
+      "open": false
+    },
+    "retained": {
+      "SmartDashboard": {
+        "PPAutoChooser": {
+          "open": true
+        },
         "open": true
-      },
+      }
+    },
+    "transitory": {
       "Monologue": {
         "drivebase": {
           "Pose2d##v_/Monologue/drivebase/poseYag11": {
@@ -151,14 +159,10 @@
             "open": true
           },
           "open": true
-        },
-        "open": true
+        }
       },
       "SmartDashboard": {
-        "open": true,
-        "swerve": {
-          "open": true
-        }
+        "open": true
       }
     }
   },

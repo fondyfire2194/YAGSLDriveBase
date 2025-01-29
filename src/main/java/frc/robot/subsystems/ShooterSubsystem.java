@@ -17,6 +17,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -69,6 +70,11 @@ public class ShooterSubsystem extends SubsystemBase {
   public final double bottomShooterKFF = 1.0 / 5700;
   public final double voltageComp = 12;
 
+   private MedianFilter topAmpFilter;
+  private MedianFilter bottomAmpFilter;
+  private MedianFilter topRPMFilter;
+  private MedianFilter bottomRPMFilter;
+
   public final AngularVelocity maxShooterMotorRPM = RPM.of(5700);
   public final AngularVelocity minShooterMotorRPM = RPM.of(1500);
 
@@ -116,6 +122,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
     okTriggerLobShot = true;
     okTriggerSpeakerShot = false;
+
+    
+    topAmpFilter = new MedianFilter(20);
+    bottomAmpFilter = new MedianFilter(20);
+    topRPMFilter = new MedianFilter(20);
+    bottomRPMFilter = new MedianFilter(20);
   }
 
   public void stopMotors() {
@@ -296,28 +308,24 @@ public class ShooterSubsystem extends SubsystemBase {
     } else {
       stopMotors();
     }
-    if (!topMotorConnected) {
-      topMotorConnected = checkMotorCanOK(topRoller);
-      SmartDashboard.putBoolean("Shooter//OKTShooter", topMotorConnected);
-    }
 
-    if (!bottomMotorConnected) {
-      bottomMotorConnected = checkMotorCanOK(bottomRoller);
-      SmartDashboard.putBoolean("Shooter//OKBShooter", bottomMotorConnected);
-    }
+    double topAmpFiltered = topAmpFilter.calculate(getTopAmps());
+    double bottomAmpFiltered = bottomAmpFilter.calculate(getBottomAmps());
+    double topRPMFiltered = topRPMFilter.calculate(getRPMTop().magnitude());
+    double bottomRPMFiltered = bottomRPMFilter.calculate(getRPMBottom().magnitude());
+
+    SmartDashboard.putNumber("Shooter/Top Amps", getTopAmps());
+    SmartDashboard.putNumber("Shooter/Top Filtered Amps", topAmpFiltered);
+    SmartDashboard.putNumber("Shooter/Bottom Amps", getBottomAmps());
+    SmartDashboard.putNumber("Shooter/Bottom Filtered Amps", bottomAmpFiltered);
+
+    SmartDashboard.putNumber("Shooter/Top RPM", getRPMTop().magnitude());
+    SmartDashboard.putNumber("Shooter/Top Filtered RPM", topRPMFiltered);
+    SmartDashboard.putNumber("Shooter/Bottom RPM", getRPMBottom().magnitude());
+    SmartDashboard.putNumber("Shooter/Bottom Filtered RPM", bottomRPMFiltered);
 
   }
 
-  private boolean checkMotorCanOK(SparkMax motor) {
-
-    return RobotBase.isSimulation();
-  }
-
-  public Command testCan() {
-    return Commands.parallel(
-        Commands.runOnce(() -> topMotorConnected = false),
-        runOnce(() -> bottomMotorConnected = false));
-  }
 
   private AngularVelocity getTopCommandRPM() {
     return topCommandRPM;
