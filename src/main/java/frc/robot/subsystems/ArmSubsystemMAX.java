@@ -6,6 +6,8 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.playingwithfusion.TimeOfFlight;
+import com.playingwithfusion.TimeOfFlight.RangingMode;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
@@ -134,6 +136,8 @@ public class ArmSubsystemMAX extends SubsystemBase implements Logged {
                     new Color8Bit(Color.kYellow)));
 
     private final MechanismLigament2d m_armTarget;
+    private final TimeOfFlight m_rangeSensorLeft = new TimeOfFlight(31);
+    private final TimeOfFlight m_rangeSensorRight = new TimeOfFlight(32);
 
     public ArmSubsystemMAX() {
 
@@ -192,19 +196,41 @@ public class ArmSubsystemMAX extends SubsystemBase implements Logged {
         SmartDashboard.putData("Arm//Arm Sim", m_mech2d);
         m_armTower.setColor(new Color8Bit(Color.kBlue));
 
+        // Configure time of flight sensor for short ranging mode and sample
+        // distance every 40 ms
+        m_rangeSensorLeft.setRangingMode(RangingMode.Medium, 32);
+        m_rangeSensorRight.setRangingMode(RangingMode.Medium, 32);
+
     }
 
     @Override
     public void periodic() {
 
-        if(tuning)tuneSparkPID.tune();
+        if (tuning)
+            tuneSparkPID.tune();
 
         SD.sd2("Arm/Position", getAngle().in(Degrees));
         SD.sd2("Arm/Goal", getCurrentGoal().in(Degrees));
         SD.sd2("Arm/EncPosition", armMotor.getEncoder().getPosition());
+
+        SD.sd2("Arm/FDistanceLeft", m_rangeSensorLeft.getRange());
+
+        SD.sd("Arm/TOFDistanceSigmaLeft",m_rangeSensorLeft.getRangeSigma());
+
+        SmartDashboard.putString("Arm/TOFStatusLeft", m_rangeSensorLeft.getStatus().toString());
+
+
+        
+        SD.sd2("Arm/FDistanceRight", m_rangeSensorRight.getRange());
+
+        SD.sd("Arm/TOFDistanceSigmaRight",m_rangeSensorRight.getRangeSigma());
+
+        SmartDashboard.putString("Arm/TOFStatusRight", m_rangeSensorRight.getStatus().toString());
+
     }
 
     @Override
+
     public void simulationPeriodic() {
 
         Angle a = getCurrentGoal().minus(simAngleRads);

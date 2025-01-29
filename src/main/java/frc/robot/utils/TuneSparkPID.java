@@ -64,8 +64,6 @@ public class TuneSparkPID {
             existKi = m_motor.configAccessor.closedLoop.getI();
             existKd = m_motor.configAccessor.closedLoop.getD();
 
-            SmartDashboard.putString("TEMP", temp);
-
             SmartDashboard.putNumber(temp + "EXISTKP", existKp);
             SmartDashboard.putNumber(temp + "EXISTKI", existKi);
             SmartDashboard.putNumber(temp + "EXISTKD", existKd);
